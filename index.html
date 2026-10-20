@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gensokyo Harvest — Game Dev Dashboard</title>
+<style>
+:root{
+  --bg:#fbf6f1; --bg2:#fff; --ink:#2b2233; --muted:#7a6d80; --line:#ecdfe3;
+  --red:#d6334a; --red-soft:#fbe3e7; --gold:#e8b04b; --night:#2a2f5e; --night2:#454b8c;
+  --star:#ffe9a8; --pink:#e0619e; --green:#4c9a6a; --blue:#4a76c9; --purple:#8a5cc2;
+  --shadow:0 3px 14px rgba(80,30,50,.08); --r:14px;
+}
+[data-theme="dark"]{
+  --bg:#141629; --bg2:#1f2240; --ink:#f1ecf5; --muted:#a9a3c4; --line:#33375e;
+  --red:#ff5d73; --red-soft:#3a2440; --night:#0d0f22; --night2:#2b2f63;
+  --shadow:0 3px 14px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI","Hiragino Maru Gothic ProN","Nunito",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;transition:background .2s,color .2s}
+a{color:var(--red)}
+header{background:linear-gradient(135deg,var(--night) 0%,var(--night2) 70%,#6b3b6e 100%);color:#fff;padding:22px 20px 0;position:relative;overflow:hidden}
+header .stars{position:absolute;inset:0;pointer-events:none;background-image:
+ radial-gradient(1.5px 1.5px at 10% 20%,var(--star),transparent),radial-gradient(1px 1px at 25% 60%,#fff,transparent),
+ radial-gradient(2px 2px at 40% 30%,var(--star),transparent),radial-gradient(1px 1px at 55% 75%,#fff,transparent),
+ radial-gradient(1.5px 1.5px at 70% 15%,#fff,transparent),radial-gradient(2px 2px at 85% 55%,var(--star),transparent),
+ radial-gradient(1px 1px at 93% 25%,#fff,transparent),radial-gradient(1px 1px at 5% 80%,#fff,transparent);opacity:.9}
+.hwrap{max-width:1150px;margin:0 auto;position:relative}
+.title{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.yin{width:46px;height:46px;border-radius:50%;flex:none;background:
+ radial-gradient(circle at 50% 25%,#fff 0 12%,transparent 13%),radial-gradient(circle at 50% 75%,var(--red) 0 12%,transparent 13%),
+ radial-gradient(circle at 50% 25%,var(--red) 0 25%,transparent 25.5%),radial-gradient(circle at 50% 75%,#fff 0 25%,transparent 25.5%),
+ linear-gradient(90deg,#fff 50%,var(--red) 50%);box-shadow:0 0 0 3px rgba(255,255,255,.25),0 0 18px rgba(255,120,140,.5);animation:spin 18s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+h1{margin:0;font-size:1.6rem;letter-spacing:.5px}
+.sub{color:#d9d6f5;font-size:.92rem}
+.hbtns{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+nav{display:flex;gap:4px;margin-top:18px;overflow-x:auto;flex-wrap:wrap}
+@media (max-width:600px){nav{flex-wrap:nowrap}}
+nav button{background:transparent;border:0;color:#e5e2ff;padding:10px 16px;border-radius:12px 12px 0 0;cursor:pointer;font:inherit;font-weight:600;white-space:nowrap}
+nav button:hover{background:rgba(255,255,255,.1)}
+nav button.active{background:var(--bg);color:var(--red)}
+main{max-width:1150px;margin:0 auto;padding:22px 20px 60px}
+section.tab{display:none}section.tab.active{display:block}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g5{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.btn{text-decoration:none;display:inline-block;font:inherit;border:1px solid var(--line);background:var(--bg2);color:var(--ink);padding:7px 13px;border-radius:999px;cursor:pointer;font-size:.88rem}
+.btn:hover{border-color:var(--red);color:var(--red)}
+.btn.primary{background:var(--red);border-color:var(--red);color:#fff}.btn.primary:hover{filter:brightness(1.08);color:#fff}
+header .btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#fff}
+.btn.sm{padding:3px 9px;font-size:.78rem}
+.bar{height:14px;background:var(--line);border-radius:999px;overflow:hidden}
+.bar>div{height:100%;background:linear-gradient(90deg,var(--red),#ff8fa0,var(--gold));border-radius:999px;transition:width .4s}
+.pill{display:inline-block;padding:1px 9px;border-radius:999px;font-size:.74rem;font-weight:600;background:var(--red-soft);color:var(--red)}
+.muted{color:var(--muted)}
+h2{margin:0 0 12px;font-size:1.25rem}
+h2::before{content:"✦ ";color:var(--gold)}
+h3{margin:0 0 6px;font-size:1.05rem}
+.pillar{border-top:5px solid var(--c)}
+.pillar .ico{font-size:1.8rem}
+.pitch{background:linear-gradient(135deg,var(--red-soft),transparent);border-left:5px solid var(--red)}
+.stats{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px}
+.stats div b{font-size:1.3rem;display:block}
+/* study */
+.stage{margin-bottom:16px}
+.stage-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.stage-h .bar{flex:1;min-width:120px;height:8px}
+.res{display:flex;gap:10px;align-items:flex-start;padding:9px 6px;border-bottom:1px dashed var(--line)}
+.res:last-child{border-bottom:0}
+.res input{margin-top:5px;width:18px;height:18px;accent-color:var(--red);flex:none}
+.res.done .rt{text-decoration:line-through;opacity:.6}
+.res .rt a{font-weight:600}
+.res .rt a.xl{font-weight:500;font-size:.85rem}
+.empty{border:2px dashed var(--line);border-radius:10px;padding:12px;color:var(--muted);text-align:center;font-size:.9rem}
+.todo-tag{background:#fff3d6;color:#a46b00}
+[data-theme="dark"] .todo-tag{background:#4a3a14;color:#ffd77a}
+/* boards */
+.board{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.col{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:12px;min-height:160px}
+.col.over{outline:3px dashed var(--red);outline-offset:-4px}
+.col-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.item{background:var(--bg);border:1px solid var(--line);border-left:4px solid var(--c,var(--red));border-radius:10px;padding:9px 10px;margin-bottom:9px;cursor:grab}
+.item.dragging{opacity:.4}
+.item .it{font-weight:600}
+.item .id{font-size:.86rem;color:var(--muted);white-space:pre-wrap}
+.item .acts{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+select,input[type=text],input[type=number],textarea{font:inherit;background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+textarea{width:100%;min-height:80px;resize:vertical}
+.notice{font-size:.86rem;background:var(--red-soft);border-radius:10px;padding:8px 12px;margin-bottom:12px}
+.story-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:16px}
+.chars{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.char{border:1px solid var(--line);border-left:5px solid var(--c);border-radius:12px;padding:12px;background:var(--bg)}
+.char .role{font-size:.8rem;font-weight:700;color:var(--c);text-transform:uppercase;letter-spacing:.5px}
+.elist{list-style:none;margin:0 0 10px;padding:0}
+.elist li{display:flex;gap:8px;align-items:flex-start;padding:7px 4px;border-bottom:1px dashed var(--line)}
+.elist li:last-child{border-bottom:0}
+.elist li input[type=checkbox]{margin-top:4px;width:17px;height:17px;accent-color:var(--red);flex:none}
+.elist li .lt{flex:1;white-space:pre-wrap}
+.elist li.done .lt{text-decoration:line-through;opacity:.6}
+.elist li .acts{display:flex;gap:3px;flex:none}
+.addrow{display:flex;gap:8px}.addrow input{flex:1;min-width:0}
+.debt{background:linear-gradient(135deg,#fff3d6,var(--bg2));border:1px solid #f0d79a}
+[data-theme="dark"] .debt{background:linear-gradient(135deg,#3a3016,var(--bg2));border-color:#6b5a22}
+.debt .bar>div{background:linear-gradient(90deg,var(--gold),#ffd77a,var(--green))}
+.debt-fields{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.debt-fields label{font-size:.8rem;font-weight:600;display:flex;flex-direction:column;gap:3px}
+.debt-fields input{width:130px;font:inherit;background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:6px 9px}
+[contenteditable="true"]{outline:none;border-radius:6px;transition:background .15s}
+[contenteditable="true"]:hover{background:rgba(214,51,74,.06)}
+[contenteditable="true"]:focus{background:var(--red-soft);box-shadow:0 0 0 2px var(--red-soft)}
+.ed-hint{font-size:.72rem;color:var(--muted)}
+.timeline{list-style:none;margin:0 0 10px;padding:0 0 0 18px;border-left:3px solid var(--line)}
+.timeline li{position:relative;padding:6px 4px 10px 6px;display:flex;gap:8px;align-items:flex-start}
+.timeline li::before{content:"";position:absolute;left:-27px;top:11px;width:13px;height:13px;border-radius:50%;background:var(--bg2);border:3px solid var(--red)}
+.timeline li.done::before{background:var(--red)}
+.timeline li .lt{flex:1;white-space:pre-wrap}
+.timeline li .acts{display:flex;gap:3px;flex:none}
+.style-card{border-top:5px solid var(--c)}
+.style-card textarea{min-height:70px;font-size:.88rem;margin-top:6px}
+.style-card .shead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:.9rem}
+.tbl th{text-align:left;font-size:.8rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:6px 8px;border-bottom:2px solid var(--line)}
+.tbl td{padding:6px 8px;border-bottom:1px dashed var(--line);vertical-align:middle}
+.tbl input[type=text]{width:100%;min-width:70px}
+.tbl-wrap{overflow-x:auto}
+.cell-st{font:inherit;font-size:.82rem;border-radius:999px;padding:4px 8px;border:1px solid var(--line);cursor:pointer}
+.cell-st.s0{background:var(--bg2);color:var(--muted)}
+.cell-st.s1{background:#fff3d6;color:#8a5a00;border-color:#f0d79a}
+.cell-st.s2{background:#dff3e6;color:#2d7a4b;border-color:#a8dbb9}
+[data-theme="dark"] .cell-st.s1{background:#4a3a14;color:#ffd77a;border-color:#6b5a22}
+[data-theme="dark"] .cell-st.s2{background:#1d3a2a;color:#8fe0ad;border-color:#2f6b47}
+.qans{font-size:.85rem;margin-top:3px;padding:4px 8px;border-left:3px solid var(--green);background:rgba(76,154,106,.08);border-radius:0 8px 8px 0}
+.qans.partial{border-left-color:var(--gold);background:rgba(232,176,75,.1)}
+.season-pill{font-weight:700}
+.cycle{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;justify-content:center}
+.cstep{flex:1 1 180px;max-width:260px;background:var(--bg);border:2px solid var(--line);border-top:5px solid var(--c);border-radius:16px;padding:12px;position:relative;margin:6px 0}
+.cstep .cn{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font-weight:700;align-items:center;justify-content:center;font-size:.85rem;margin-right:6px}
+.cstep h3{display:inline;font-size:1rem}
+.cstep .cd{font-size:.88rem;color:var(--muted);margin-top:6px;white-space:pre-wrap}
+.carrow{display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--red);padding:0 4px;flex:none}
+.cloop{margin-top:8px;text-align:center;border:2px dashed var(--red);border-top:0;border-radius:0 0 22px 22px;padding:6px 10px 8px;color:var(--red);font-weight:600;font-size:.88rem}
+.layers{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:14px}
+.layer{border-left:5px solid var(--c);background:var(--bg);border-radius:0 12px 12px 0;padding:10px 12px}
+.layer .lh{font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.5px;color:var(--c)}
+.secret{background:linear-gradient(135deg,#e8eefc,var(--bg2));border:1px solid #c9d6f5}
+[data-theme="dark"] .secret{background:linear-gradient(135deg,#1e2a4a,var(--bg2));border-color:#33456e}
+.ex-tag{background:#e8eefc;color:#3f5fa8}
+[data-theme="dark"] .ex-tag{background:#25335a;color:#9db8f0}
+.wstrip{display:flex;gap:0;overflow-x:auto;padding:26px 4px 8px;align-items:stretch}
+.warea{flex:0 0 185px;background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:10px;position:relative;margin-right:10px}
+.warea.unl{border-color:var(--green);background:linear-gradient(180deg,rgba(76,154,106,.10),var(--bg))}
+.warea.lock{opacity:.85;background:repeating-linear-gradient(135deg,var(--bg),var(--bg) 8px,rgba(138,92,194,.07) 8px,rgba(138,92,194,.07) 16px)}
+.warea.boundary{border-left:4px dashed var(--purple)}
+.warea .an{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase}
+.warea h3{font-size:.98rem;margin:2px 0 6px;min-height:1.3em}
+.warea textarea{min-height:70px;font-size:.84rem}
+.warea .btag{position:absolute;top:-22px;left:-8px;font-size:.72rem;font-weight:700;color:var(--purple);white-space:nowrap}
+[data-ph]:empty::before{content:attr(data-ph);color:var(--muted);font-style:italic}
+.wloop{border:2px dashed var(--purple);border-top:0;border-radius:0 0 22px 22px;padding:6px 10px 8px;color:var(--purple);font-weight:600;font-size:.86rem;text-align:center;margin-top:4px}
+.anom{border-top:5px solid var(--purple)}
+.anom label{display:block;font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin:8px 0 3px}
+.anom input[type=text],.anom textarea,.anom select{width:100%}
+.anom textarea{min-height:60px;font-size:.88rem}
+.notes{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.note{background:#fffbe8;color:#3b3220;border-radius:6px 16px 6px 16px;padding:12px;box-shadow:var(--shadow);position:relative}
+[data-theme="dark"] .note{background:#2e2b44;color:var(--ink)}
+.note .nd{font-size:.75rem;opacity:.7}
+.note .nb{white-space:pre-wrap;margin:6px 0}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(10,8,30,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal.open{display:flex}
+.modal .card{width:min(520px,100%)}
+.modal label{display:block;font-size:.85rem;font-weight:600;margin:10px 0 4px}
+.modal input[type=text],.modal select{width:100%}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:20px}
+@media (max-width:600px){h1{font-size:1.25rem}.hbtns{margin-left:0}}
+/* ---------- print mode (?print=1) ---------- */
+body.print{background:#fff}
+body.print header{padding-bottom:18px}
+body.print nav, body.print .hbtns, body.print footer, body.print .modal, body.print button, body.print .addrow, body.print .toolbar, body.print .p-hide{display:none !important}
+body.print .yin{animation:none}
+body.print main{max-width:none;padding:14px 0 0}
+body.print section.tab{display:block !important;break-before:page;page-break-before:always}
+body.print section.tab:first-of-type{break-before:auto;page-break-before:auto}
+body.print .p-title{font-size:1.45rem;margin:0 0 14px;padding:8px 14px;border-radius:12px;background:linear-gradient(135deg,var(--night),var(--night2));color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body.print .card, body.print .item, body.print .note, body.print .warea, body.print .cstep, body.print .res, body.print tr, body.print .elist li, body.print .timeline li{break-inside:avoid;page-break-inside:avoid}
+body.print .card{box-shadow:none}
+body.print .stage, body.print .col{break-inside:auto}
+body.print .tbl-wrap, body.print .wstrip{overflow:visible}
+body.print .tbl{table-layout:fixed}
+body.print .tbl td, body.print .tbl th{word-wrap:break-word;overflow-wrap:anywhere}
+body.print .wstrip{flex-wrap:wrap;row-gap:30px;padding-top:24px}
+body.print .warea{flex:1 1 150px;max-width:24%}
+body.print .pv{white-space:pre-wrap;font-size:.9rem;padding:3px 0;min-height:1.2em}
+body.print .pv.empty-v{color:var(--muted);font-style:italic}
+body.print .pv-st{display:inline-block;font-size:.8rem;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid var(--line)}
+body.print .pv-st.s0{color:var(--muted)} body.print .pv-st.s1{background:#fff3d6;color:#8a5a00} body.print .pv-st.s2{background:#dff3e6;color:#2d7a4b}
+body.print .pcheck{font-size:1.05rem;line-height:1;flex:none;margin-top:2px}
+body.print .board{display:block}
+body.print .col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-height:0;margin-bottom:12px;padding:10px}
+body.print .col-h{grid-column:1/-1;margin-bottom:0}
+body.print .col > .muted{grid-column:1/-1}
+body.print .item{margin-bottom:0}
+body.print .story-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.print .item{cursor:default}
+body.print a{text-decoration:none}
+body.print .p-cover{color:#d9d6f5;font-size:.85rem;margin-top:6px}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@page{size:A4;margin:12mm 11mm}
+</style>
+</head>
+<body>
+<header>
+  <div class="stars"></div>
+  <div class="hwrap">
+    <div class="title">
+      <div class="yin" title="Yin-yang orb"></div>
+      <div>
+        <h1 id="projTitle">Gensokyo Harvest <span style="font-weight:400;font-size:.8em">(working title)</span></h1>
+        <div class="sub">Touhou doujin · farming × roguelite × rhythm combat · built in Unity</div>
+      </div>
+      <div class="hbtns">
+        <button class="btn" id="themeBtn">🌙 Theme</button>
+        <button class="btn" id="exportBtn">⬇ Export JSON</button>
+        <button class="btn" id="importBtn">⬆ Import JSON</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+      </div>
+    </div>
+    <nav id="nav">
+      <button data-tab="overview" class="active">⛩ Overview</button>
+      <button data-tab="story">📖 Story</button>
+      <button data-tab="combat">⚔ Combat</button>
+      <button data-tab="loop">🔁 Game loop</button>
+      <button data-tab="world">🗺 World map</button>
+      <button data-tab="social">💝 Social</button>
+      <button data-tab="music">🎵 Music</button>
+      <button data-tab="study">📜 Study plan</button>
+      <button data-tab="features">🌸 Features</button>
+      <button data-tab="tasks">🗂 Tasks &amp; bugs</button>
+      <button data-tab="notes">🍵 Ideas / notes</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- OVERVIEW -->
+<section class="tab active" id="tab-overview">
+  <div class="card pitch" style="margin-bottom:16px">
+    <h2>The pitch</h2>
+    <p style="margin:0">A small <b>Touhou Project</b> fan game where you tend a cozy farm in Gensokyo by day, Stardew Valley-style, and dive into <b>roguelite</b> runs where every fight follows the beat, like <b>Crypt of the NecroDancer</b>: grid-based moves, one action per beat. Inspiration and a similar in-development project: <i>Freaked Fleapit</i>.</p>
+  </div>
+  <div class="grid g5" style="margin-bottom:16px">
+    <div class="card pillar" style="--c:var(--green)"><div class="ico">🌾</div><h3>Farming</h3><div class="muted">Crops, seasons, day cycle, tools, selling and upgrading the farm.</div><div class="pf" data-p="farming"></div></div>
+    <div class="card pillar" style="--c:var(--red)"><div class="ico">🥁</div><h3>Rhythm combat</h3><div class="muted">Grid moves on the beat, timing windows, enemy patterns synced to music.</div><div class="pf" data-p="rhythm"></div></div>
+    <div class="card pillar" style="--c:var(--purple)"><div class="ico">🎲</div><h3>Roguelite</h3><div class="muted">Procedural floors, run-based loot, meta-progression back on the farm.</div><div class="pf" data-p="roguelite"></div></div>
+    <div class="card pillar" style="--c:var(--gold)"><div class="ico">⛩</div><h3>Touhou setting</h3><div class="muted">Gensokyo locations, characters, music, and following fan-work guidelines.</div><div class="pf" data-p="touhou"></div></div>
+    <div class="card pillar" style="--c:var(--pink)"><div class="ico">💝</div><h3>Social &amp; village</h3><div class="muted">Gifts, affinity passives, traveling vendors and weekly events.</div><div class="pf" data-p="social"></div></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>Similar projects</h2>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">
+      <div style="font-size:2rem">💃</div>
+      <div style="flex:1;min-width:240px">
+        <h3><a href="https://store.steampowered.com/app/1840880/Freaked_Fleapit/" target="_blank" rel="noopener">Freaked Fleapit</a></h3>
+        <div>A rhythm dungeon crawler + dating sim with roguelite progression. The closest existing game to your idea.</div>
+        <div class="muted" style="font-size:.88rem;margin-top:4px">By <b>Finch Bird Studio</b> · published by <b>CRITICAL REFLEX</b> · Release: <span class="pill">Coming soon</span> · <span class="pill" style="background:#dff3e6;color:#2d7a4b">Demo available</span></div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <a class="btn sm" href="https://store.steampowered.com/app/1840880/Freaked_Fleapit/" target="_blank" rel="noopener">Steam page</a>
+          <a class="btn sm" href="https://steamcommunity.com/app/1840880/announcements/" target="_blank" rel="noopener">Devlogs</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Overall progress</h2>
+    <div class="bar"><div id="ovBar" style="width:0"></div></div>
+    <div class="stats">
+      <div><b id="ovPct">0%</b><span class="muted">overall</span></div>
+      <div><b id="ovStudy">0/0</b><span class="muted">study items done</span></div>
+      <div><b id="ovTasks">0/0</b><span class="muted">tasks done</span></div>
+      <div><b id="ovFeat">0/0</b><span class="muted">features done</span></div>
+    </div>
+    <p class="muted" style="font-size:.82rem;margin:10px 0 0">Overall = (checked study items + done tasks) ÷ (all study items + all tasks).</p>
+  </div>
+</section>
+
+<!-- STORY -->
+<section class="tab" id="tab-story">
+  <div class="story-grid">
+    <div class="card pitch">
+      <h2>Premise</h2>
+      <p style="margin:0">The player steps through one of <b>Yukari's boundaries</b> and ends up in Gensokyo, near the <b>Human Village</b>. By chance they meet <b>Marisa Kirisame</b>, who takes an interest in them and hands over a way to study magic (an artifact or a tome), charging them a hefty price for it.</p>
+      <p style="margin:10px 0 0">The game starts at the <b>beginning of spring</b>, with a small plot of land for growing crops and selling vegetables.</p>
+    </div>
+    <div class="card">
+      <h2>Setting</h2>
+      <p style="margin:0"><b>Gensokyo</b>, just before the <b>Touhou 7 incident</b> (<i>Perfect Cherry Blossom</i>, the spring that never comes).</p>
+      <p class="muted" style="margin:10px 0 0">ZUN's source material is used lightly. The story is secondary to the gameplay.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h2>Characters</h2>
+    <p class="ed-hint" style="margin:-6px 0 10px">Click any name, role or description to edit it. <span class="pill todo-tag">editable</span></p>
+    <div class="chars" id="charList"></div>
+    <div style="margin-top:10px"><button class="btn sm" id="charAdd">+ Add character</button></div>
+  </div>
+
+  <div class="story-grid">
+    <div class="card">
+      <h2>Main arc / timeline</h2>
+      <p class="ed-hint" style="margin:-6px 0 10px">Tick an entry when it's written. <span class="pill todo-tag">editable</span></p>
+      <ul class="timeline" id="tlList"></ul>
+      <div class="addrow"><input type="text" id="tlNew" placeholder="Add a timeline entry…"><button class="btn primary" id="tlAdd">Add</button></div>
+    </div>
+    <div class="card">
+      <h2>Demo scope</h2>
+      <p class="ed-hint" style="margin:-6px 0 6px"><span class="pill todo-tag">editable</span></p>
+      <textarea id="demoScope" data-bind="story.demo.scope" style="min-height:70px"></textarea>
+      <label class="ed-hint" style="display:block;margin-top:8px;font-weight:600">Funding &amp; support</label>
+      <textarea id="demoAfter" data-bind="story.demo.after" style="min-height:130px"></textarea>
+      <div class="ed-hint" style="margin-top:8px">📜 <a href="https://touhou-project.news/guideline/" target="_blank" rel="noopener">2024 fan-work guideline</a></div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+    <div class="card">
+      <h2>Arc 1: Prologue / debt arc</h2>
+      <p class="muted" style="margin:0 0 8px;font-size:.88rem">Marisa insists the player stays on the plot until they can fend for themselves and pay off the debt. This arc teaches the basics of farming and combat: fighting small invaders while the player gradually picks a combat style. <span class="pill todo-tag">editable</span></p>
+      <div class="bar" style="height:8px;margin-bottom:6px"><div id="beatBar" style="width:0"></div></div>
+      <ul class="elist" id="beatList"></ul>
+      <div class="addrow"><input type="text" id="beatNew" placeholder="Add a story beat…"><button class="btn primary" id="beatAdd">Add</button></div>
+    </div>
+    <div class="card debt">
+      <h2>Marisa's debt</h2>
+      <p class="muted" style="margin:0;font-size:.86rem">"I'll just borrow it until I die" doesn't work both ways, ze. <span class="pill todo-tag">editable</span> The amounts are placeholders. Set your own.</p>
+      <div class="debt-fields">
+        <label>Total debt<input type="number" id="debtTotal" min="0" step="1"></label>
+        <label>Paid so far<input type="number" id="debtPaid" min="0" step="1"></label>
+        <label>Currency<input type="text" id="debtUnit" maxlength="12"></label>
+      </div>
+      <div class="bar"><div id="debtBar" style="width:0"></div></div>
+      <div id="debtTxt" style="margin-top:6px;font-weight:600"></div>
+      <div class="addrow" style="margin-top:10px"><input type="number" id="debtPayAmt" min="0" step="1" placeholder="Payment amount"><button class="btn" id="debtPay">+ Record payment</button></div>
+    </div>
+  </div>
+
+  <div class="story-grid">
+    <div class="card">
+      <h2>Open questions</h2>
+      <p class="muted" style="margin:0 0 8px;font-size:.88rem">Tick a question when it's decided. <span class="pill todo-tag">editable</span></p>
+      <ul class="elist" id="qList"></ul>
+      <div class="addrow"><input type="text" id="qNew" placeholder="Add a question…"><button class="btn primary" id="qAdd">Add</button></div>
+    </div>
+    <div class="card">
+      <h2>Story notes</h2>
+      <textarea id="storyNotes" style="min-height:200px" placeholder="Free-form lore, dialogue snippets, ideas for Marisa's lines…"></textarea>
+      <div class="muted" id="storySaved" style="font-size:.78rem;margin-top:4px">Saves automatically.</div>
+    </div>
+  </div>
+</section>
+
+<!-- COMBAT -->
+<section class="tab" id="tab-combat">
+  <div class="story-grid">
+    <div class="card pitch">
+      <h2>Core rule</h2>
+      <div contenteditable="true" data-bind="combat.rule"></div>
+      <div class="ed-hint" style="margin-top:6px">Click the text to edit.</div>
+    </div>
+    <div class="card">
+      <h2>Inspiration: Touhou Dystopian</h2>
+      <div contenteditable="true" data-bind="combat.inspiration" style="white-space:pre-wrap"></div>
+      <div class="ed-hint" style="margin-top:6px">Click the text to edit.</div>
+    </div>
+  </div>
+  <div class="story-grid">
+    <div class="card">
+      <h2>Movement &amp; the beat</h2>
+      <div contenteditable="true" data-bind="loop.movement"></div>
+      <div class="ed-hint" style="margin-top:6px">Click the text to edit.</div>
+    </div>
+    <div class="card">
+      <h2>Training area</h2>
+      <div contenteditable="true" data-bind="loop.training"></div>
+      <div class="ed-hint" style="margin-top:6px">Click the text to edit. Also shown on the Game loop tab.</div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>Fighting-style skill tree</h2>
+    <p class="ed-hint" style="margin:-6px 0 10px">Click a name or description to edit. Status and notes save automatically. <span class="pill todo-tag">editable</span></p>
+    <div class="grid g4" id="styleList"></div>
+    <div style="margin-top:10px"><button class="btn sm" id="styleAdd">+ Add style</button></div>
+  </div>
+  <div class="card">
+    <h2>Faith combo list</h2>
+    <p class="ed-hint" style="margin:-6px 0 10px">Movement combos that cast Faith spells. Effects and costs are still TBD. <span class="pill todo-tag">editable</span></p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Inputs</th><th style="width:90px">Beats</th><th>Effect</th><th style="width:140px">Cost</th><th style="width:44px"></th></tr></thead><tbody id="comboBody"></tbody></table></div>
+    <div style="margin-top:10px"><button class="btn sm" id="comboAdd">+ Add combo</button></div>
+  </div>
+</section>
+
+<!-- GAME LOOP -->
+<section class="tab" id="tab-loop">
+  <div class="card" style="margin-bottom:16px">
+    <h2>Daily cycle</h2>
+    <p class="ed-hint" style="margin:-6px 0 10px">Click a step title or description to edit. <span class="pill todo-tag">editable</span></p>
+    <div class="cycle" id="cycleList"></div>
+    <div class="cloop">↻ then the next day starts again at step 1</div>
+    <div style="margin-top:10px"><button class="btn sm" id="cycleAdd">+ Add step</button></div>
+    <div class="layers">
+      <div class="layer" style="--c:var(--purple)"><div class="lh">🍂 Season layer</div><div contenteditable="true" data-bind="loop.season"></div></div>
+      <div class="layer" style="--c:var(--pink)"><div class="lh">📅 Weekly layer</div><div contenteditable="true" data-bind="loop.weekly"></div></div>
+    </div>
+  </div>
+  <div class="card secret" style="margin-bottom:16px">
+    <h2>The eternal winter is a secret</h2>
+    <div contenteditable="true" data-bind="loop.secret"></div>
+  </div>
+  <div class="story-grid">
+    <div class="card">
+      <h2>Climate &amp; dialogue signals</h2>
+      <p class="ed-hint" style="margin:-6px 0 10px">Hints that spring is going wrong. Entries tagged <span class="pill ex-tag">example</span> are placeholders; edit or delete them. <span class="pill todo-tag">editable</span></p>
+      <ul class="elist" id="sigList"></ul>
+      <div class="addrow"><input type="text" id="sigNew" placeholder="Add a climate or dialogue signal…"><button class="btn primary" id="sigAdd">Add</button></div>
+    </div>
+    <div class="card">
+      <h2>Weekly events</h2>
+      <p class="ed-hint" style="margin:-6px 0 10px">One event per week that introduces a character or lets the player spend time with one. <span class="pill todo-tag">editable</span></p>
+      <ul class="elist" id="evList"></ul>
+      <div class="addrow"><input type="text" id="evNew" placeholder="e.g. Week 2: Reimu visits the village festival…"><button class="btn primary" id="evAdd">Add</button></div>
+    </div>
+  </div>
+  <div class="story-grid">
+    <div class="card">
+      <h2>Movement &amp; the beat</h2>
+      <div contenteditable="true" data-bind="loop.movement"></div>
+      <div class="ed-hint" style="margin-top:6px">Click the text to edit.</div>
+    </div>
+    <div class="card">
+      <h2>Training area</h2>
+      <div contenteditable="true" data-bind="loop.training"></div>
+      <div class="ed-hint" style="margin-top:6px">Click the text to edit. Also shown on the Combat tab.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Farm automation</h2>
+    <p class="ed-hint" style="margin:-6px 0 10px">Ways to free up time for adventuring. Click a name or description to edit. <span class="pill todo-tag">editable</span></p>
+    <div class="grid g4" id="autoList"></div>
+    <div style="margin-top:10px"><button class="btn sm" id="autoAdd">+ Add automation</button></div>
+  </div>
+</section>
+
+<!-- WORLD -->
+<section class="tab" id="tab-world">
+  <div class="card pitch" style="margin-bottom:16px">
+    <h2>One continuous world</h2>
+    <div contenteditable="true" data-bind="world.intro"></div>
+    <div class="ed-hint" style="margin-top:6px">Click the text to edit.</div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>Areas, left to right</h2>
+    <p class="ed-hint" style="margin:-6px 0 0">Click a name to edit it, tick "unlocked", add notes. <span class="pill todo-tag">editable</span></p>
+    <div class="wstrip" id="areaStrip"></div>
+    <div class="wloop" id="wrapTxt"></div>
+    <div style="margin-top:10px;display:flex;gap:8px"><button class="btn sm" id="areaAdd">+ Add area</button><button class="btn sm" id="areaDel">− Remove last area</button></div>
+  </div>
+  <div class="story-grid">
+    <div class="card secret">
+      <h2>The boundary rule</h2>
+      <div contenteditable="true" data-bind="world.rule"></div>
+    </div>
+    <div class="card">
+      <h2>Implementation notes</h2>
+      <p class="ed-hint" style="margin:-6px 0 6px"><span class="pill todo-tag">editable</span></p>
+      <textarea data-bind="world.impl" style="min-height:190px"></textarea>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2>Anomalies</h2>
+    <div contenteditable="true" data-bind="world.anomIntro" style="margin-bottom:6px"></div>
+    <p class="ed-hint" style="margin:0 0 10px">Click the intro to edit. Each anomaly's fields save automatically. <span class="pill todo-tag">editable</span></p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))" id="anomList"></div>
+    <div style="margin-top:10px"><button class="btn sm" id="anomAdd">+ Add anomaly</button></div>
+  </div>
+</section>
+
+<!-- SOCIAL -->
+<section class="tab" id="tab-social">
+  <div class="card pitch" style="margin-bottom:16px">
+    <h2>Gifts &amp; affinity</h2>
+    <div contenteditable="true" data-bind="social.intro"></div>
+    <div class="ed-hint" style="margin-top:6px">Click the text to edit.</div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>Character affinity</h2>
+    <p class="ed-hint" style="margin:-6px 0 10px">Fill in as you design. Blank fields show TBD. <span class="pill todo-tag">editable</span></p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th style="width:150px">Character</th><th>Liked gifts</th><th>Disliked gifts</th><th>Passive unlocks (milestones)</th><th style="width:44px"></th></tr></thead><tbody id="affBody"></tbody></table></div>
+    <div style="margin-top:10px"><button class="btn sm" id="affAdd">+ Add character</button></div>
+  </div>
+  <div class="card">
+    <h2>Traveling vendors</h2>
+    <p class="ed-hint" style="margin:-6px 0 10px">Characters who pass through the village selling trinkets and food. <span class="pill todo-tag">editable</span></p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th style="width:170px">Character</th><th>Sells</th><th>Schedule</th><th style="width:44px"></th></tr></thead><tbody id="venBody"></tbody></table></div>
+    <div style="margin-top:10px"><button class="btn sm" id="venAdd">+ Add vendor</button></div>
+  </div>
+</section>
+
+<!-- MUSIC -->
+<section class="tab" id="tab-music">
+  <div class="card pitch" style="margin-bottom:16px">
+    <h2>Approach</h2>
+    <div contenteditable="true" data-bind="music.approach"></div>
+    <div class="ed-hint" style="margin-top:6px">Click the text to edit.</div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>Soundtrack plan</h2>
+    <p class="ed-hint" style="margin:-6px 0 10px">Click a status to cycle Not started → Sketch → Done. Song and character fields are editable. <span class="pill todo-tag">editable</span></p>
+    <div class="bar" style="height:8px;margin-bottom:4px"><div id="musicBar" style="width:0"></div></div>
+    <div class="muted" id="musicTxt" style="font-size:.82rem;margin-bottom:8px"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Season</th><th>Song (ZUN original)</th><th>Character / act</th><th>🌙 Night / resting</th><th>🌾 Farming &amp; travel</th><th>⚔ Battle</th></tr></thead><tbody id="songBody"></tbody></table></div>
+  </div>
+  <div class="card">
+    <h2>Credits &amp; rules</h2>
+    <div contenteditable="true" data-bind="music.credits" style="white-space:pre-wrap"></div>
+    <div style="margin-top:10px"><a class="btn sm" href="https://touhou-project.news/guideline/" target="_blank" rel="noopener">Current guideline (2024, Japanese)</a></div>
+  </div>
+</section>
+
+<!-- STUDY -->
+<section class="tab" id="tab-study">
+  <div class="card" style="margin-bottom:16px">
+    <h2>Study plan</h2>
+    <div class="bar"><div id="stBar" style="width:0"></div></div>
+    <p class="muted" id="stTxt" style="margin:6px 0 0"></p>
+  </div>
+  <div id="stages"></div>
+</section>
+
+<!-- FEATURES -->
+<section class="tab" id="tab-features">
+  <div class="notice">🌱 Cards marked <span class="pill todo-tag">starter</span> are suggestions to get you going. Edit or delete them freely.</div>
+  <div class="toolbar">
+    <button class="btn primary" id="addFeat">+ New feature</button>
+    <label class="muted">Pillar: <select id="featFilter"><option value="all">All</option></select></label>
+  </div>
+  <div class="board" id="featBoard"></div>
+</section>
+
+<!-- TASKS -->
+<section class="tab" id="tab-tasks">
+  <div class="toolbar">
+    <button class="btn primary" id="addTask">+ New task / bug</button>
+    <span class="muted" style="font-size:.85rem">Drag cards between columns, or use the ◀ ▶ buttons.</span>
+  </div>
+  <div class="board" id="taskBoard"></div>
+</section>
+
+<!-- NOTES -->
+<section class="tab" id="tab-notes">
+  <div class="card" style="margin-bottom:16px">
+    <h2>New idea</h2>
+    <textarea id="noteText" placeholder="A Reimu boss whose danmaku patterns snap to the beat grid…"></textarea>
+    <div style="margin-top:8px;display:flex;gap:8px"><button class="btn primary" id="addNote">Pin note</button></div>
+  </div>
+  <div class="notes" id="noteList"></div>
+</section>
+</main>
+<footer>Saved automatically in this browser (localStorage). Use Export JSON for backups. ☯</footer>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="card">
+    <h2 id="mTitle">Edit</h2>
+    <label for="mName">Title</label><input type="text" id="mName">
+    <label for="mDesc">Details</label><textarea id="mDesc"></textarea>
+    <div id="mExtra"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="mSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================
+   RESOURCES: add new study entries here.
+   Fields: id (unique, never rename: checkmarks are saved by id), stage (must match a STAGES id), title, url, note, extra (optional [[label,url],...])
+   ========================================================== */
+const RESOURCES = [
+  // Start here
+  { id:"unity-essentials", stage:"start", title:"Unity Essentials Pathway", url:"https://learn.unity.com/pathway/unity-essentials", note:"Free · ~2 weeks · Unity's official first course" },
+  { id:"junior-programmer", stage:"start", title:"Junior Programmer Pathway", url:"https://learn.unity.com/pathway/junior-programmer", note:"Free · ~12 weeks · C# in Unity from zero" },
+  // C#
+  { id:"tour-csharp", stage:"csharp", title:"A tour of C# (interactive tutorials)", url:"https://learn.microsoft.com/en-us/dotnet/csharp/tour-of-csharp/tutorials/", note:"Free · Microsoft, runs in the browser" },
+  { id:"beginner-scripting", stage:"csharp", title:"Unity Beginner Scripting", url:"https://learn.unity.com/course/beginner-scripting", note:"Free · short scripting lessons" },
+  // Reference
+  { id:"unity-manual", stage:"reference", title:"Unity Manual", url:"https://docs.unity3d.com/Manual/index.html", note:"Free · physics, 2D, animation, UI…" },
+  { id:"scripting-api", stage:"reference", title:"Unity Scripting API Reference", url:"https://docs.unity3d.com/ScriptReference/index.html", note:"Free · keep it open while coding" },
+  // Deeper
+  { id:"code-monkey", stage:"deeper", title:"Code Monkey (YouTube)", url:"https://www.youtube.com/@CodeMonkeyUnity", note:"Free · practical feature tutorials" },
+  { id:"brackeys", stage:"deeper", title:"Brackeys (YouTube)", url:"https://www.youtube.com/@Brackeys", note:"Free · classic beginner tutorials (some older Unity versions)" },
+  { id:"catlike", stage:"deeper", title:"Catlike Coding", url:"https://catlikecoding.com/unity/tutorials/", note:"Free · detailed written tutorials" },
+  { id:"gamedevtv-2d", stage:"deeper", title:"GameDev.tv: Complete C# Unity 2D Game Development (Udemy)", url:"https://www.udemy.com/course/unitycourse/", note:"Paid · often $12–23 on sale" },
+  // Design
+  { id:"gmtk", stage:"design", title:"Game Maker's Toolkit (YouTube)", url:"https://www.youtube.com/@GMTK", note:"Free · why games are fun" },
+  // Community
+  { id:"unity-discussions", stage:"community", title:"Unity Discussions", url:"https://discussions.unity.com/", note:"Free · official forum" },
+  { id:"unity-discord", stage:"community", title:"Official Unity Discord", url:"https://discord.com/invite/unity", note:"Free · live help" },
+  { id:"r-unity3d", stage:"community", title:"r/Unity3D", url:"https://www.reddit.com/r/Unity3D/", note:"Free · Reddit community" },
+  // ---- Niche topics (stage ids: "rhythm", "grid", "farming", "roguelite", "touhou", "artmusic") ----
+  // Optional field: extra:[["Label","https://..."], ...] for secondary links.
+  // Niche · Rhythm combat
+  { id:"rhythm-coding-to-the-beat", stage:"rhythm", title:"\"Coding to the Beat: Under the Hood of a Rhythm Game in Unity\" (Graham Tattersall, Game Developer, 2019)", url:"https://www.gamedeveloper.com/audio/coding-to-the-beat---under-the-hood-of-a-rhythm-game-in-unity", note:"Free · The well-known article. Builds a Conductor class on AudioSettings.dspTime (song position in seconds and beats, offsets, looping)." },
+  { id:"rhythm-music-syncing", stage:"rhythm", title:"\"Music Syncing in Rhythm Games\" (Yu Chao, Game Developer)", url:"https://www.gamedeveloper.com/programming/music-syncing-in-rhythm-games", note:"Free · The original article that \"Coding to the Beat\" builds on: a SongManager based on dspTime, plus note spawning and timing." },
+  { id:"rhythm-quest-devlog4", stage:"rhythm", title:"Rhythm Quest Devlog 4 (scheduling, smoothing, latency)", url:"https://rhythmquestgame.com/devlog/04.html", note:"Free · A shipped rhythm game's Unity approach: PlayScheduled, a smoothed dspTime and latency calibration. These are the polish steps the beginner articles skip." },
+  { id:"rhythm-necrodancer-deep-dive", stage:"rhythm", title:"\"Game Design Deep Dive: Finding the beat in Crypt of the NecroDancer\" (Ryan Clark)", url:"https://www.gamedeveloper.com/audio/game-design-deep-dive-finding-the-beat-in-i-crypt-of-the-necrodancer-i-", note:"Free · NecroDancer's designer on why the timing window felt best at 100% leeway (a \"fair roguelike,\" not a strict rhythm game). Essential for designing your input window." },
+  { id:"rhythm-unity-dsptime", stage:"rhythm", title:"Unity docs: AudioSettings.dspTime / AudioSource.PlayScheduled", url:"https://docs.unity3d.com/ScriptReference/AudioSettings-dspTime.html", extra:[["AudioSource.PlayScheduled","https://docs.unity3d.com/ScriptReference/AudioSource.PlayScheduled.html"]], note:"Free · The two official APIs everything above relies on." },
+  { id:"rhythm-beatnova-github", stage:"rhythm", title:"ryan-pro/RhythmGame (BeatNova), GitHub", url:"https://github.com/ryan-pro/RhythmGame", note:"Free · Readable example Unity project with a RhythmConductor component. Self-described work in progress." },
+  { id:"rhythm-necrodancer-like-thread", stage:"rhythm", title:"Unity Discussions: \"Necrodancer-like rhythm game?\"", url:"https://discussions.unity.com/t/necrodancer-like-rhythm-game/722609", note:"Free · Community thread specifically on structuring NecroDancer-style beat movement in Unity." },
+  // Niche · Grid movement & enemy AI
+  { id:"grid-unity-2d-roguelike", stage:"grid", title:"Unity Learn: Create a 2D Roguelike Game (Unity 6.x)", url:"https://learn.unity.com/course/2d-roguelike-tutorial", note:"Free · Official 2h 30m course: game board grid, player, turn system, enemy. Swap its turn tick for your Conductor's beat and you have NecroDancer's core loop." },
+  { id:"grid-redblob-astar", stage:"grid", title:"Red Blob Games: Introduction to A*", url:"https://www.redblobgames.com/pathfinding/a-star/introduction.html", note:"Free · The best interactive explanation of grid pathfinding for enemies that chase you tile by tile." },
+  { id:"grid-redblob-parts", stage:"grid", title:"Red Blob Games: Grid parts and relationships", url:"https://www.redblobgames.com/grids/parts/", note:"Free · Short primer on cells, edges, neighbors and coordinates for square grids." },
+  // Niche · Farming systems
+  { id:"farming-unity-tilemaps", stage:"farming", title:"Unity Manual: Tilemaps", url:"https://docs.unity3d.com/Manual/tilemaps/tilemaps-landing.html", note:"Free · Official docs for the 2D Tilemap system you'll use for farm plots and dungeon floors." },
+  { id:"farming-terresquall-series", stage:"farming", title:"Terresquall: \"Creating a Farming RPG (like Harvest Moon) in Unity\"", url:"https://blog.terresquall.com/series/creating-farming-rpg-in-unity/", note:"Free for Parts 1–11, then each part is marked $5 (Patreon) · Article and video series: farmland, items and inventory, in-game time, crop growth, regrowing and wilting, scene transitions, saving farmland. Later parts cover sleep/save, shop, NPCs and gifts." },
+  { id:"farming-sunnyvalley-course", stage:"farming", title:"Sunny Valley Studio: 2D Farm Game in Unity 2022", url:"https://courses.sunnyvalleystudio.com/p/2d-farm-game-in-unity-2022", note:"Paid: $85 (installments available) · The closest match to Stardew: about 35h covering planting, watering, wilting, rain, day/night time system, inventory and chests, store, sell box, save on bed. Includes a playable demo and a Discord." },
+  // Niche · Roguelite structure
+  { id:"roguelite-isaac-room-gen", stage:"roguelite", title:"\"Binding of Isaac Style Room Generator in Unity [Full Tutorial]\" (Game Dev Garnet)", url:"https://www.youtube.com/watch?v=V9BODsU3QvU", note:"Free · Room-grid dungeon generation in Unity. A good fit for NecroDancer-style room floors." },
+  { id:"roguelite-gmtk-persistency", stage:"roguelite", title:"\"Roguelikes, Persistency, and Progression\" (Game Maker's Toolkit)", url:"https://www.youtube.com/watch?v=G9FB5R4wVno", note:"Free · Mark Brown on meta-progression: what should carry over between runs." },
+  { id:"roguelite-dead-cells-gdc", stage:"roguelite", title:"\"Dead Cells: What the F*n!?\" (Sebastien Benard, GDC 2019)", url:"https://www.youtube.com/watch?v=OfSpBoA6TWw", extra:[["GDC Vault","https://www.gdcvault.com/play/1026247/-Dead-Cells-What-the"]], note:"Free · Making death feel like progress, short run loops and invisible player assists. Useful roguelite design lessons." },
+  // Niche · Touhou fan-work rules
+  { id:"touhou-guideline-ja-2024", stage:"touhou", title:"Official fan-work guidelines (Japanese, current: updated 2024-05-31)", url:"https://touhou-project.news/guideline/", note:"Free · The current rules. Must clearly say it's a Touhou fan work. No official game assets (only screenshots and play videos), no reproduced endings, nothing that looks official. Allowed channels include doujin events and shops, download stores where the original games are sold (Touhou games are on Steam), and indie game sites (e.g. itch.io, added 2024). Browser and mobile games must be free (ads and an ad-removal purchase are OK). Crowdfunding: basically don't; contact them first. Companies must inquire individually." },
+  { id:"touhou-guidelines-en-2020", stage:"touhou", title:"Official English guidelines (older translation, Nov 2020)", url:"https://touhou-project.news/guidelines_en/", note:"Free · Official English version, but it lacks the 2024 additions (indie sites, crowdfunding). Read it alongside the Japanese page." },
+  { id:"touhou-wiki-copyrights", stage:"touhou", title:"Touhou Wiki: Copyrights (translation history)", url:"https://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights", note:"Free · Translations of every version of ZUN's terms, old to new. Older terms still apply where the new ones are silent. Checked via search results; the site blocks bots." },
+  { id:"touhou-wiki-characters", stage:"touhou", title:"Touhou Wiki: Characters", url:"https://en.touhouwiki.net/wiki/Characters", note:"Free · Main character reference, organized by game. Checked via search results." },
+  { id:"touhou-play-doujin", stage:"touhou", title:"Play,Doujin! (Mediascape)", url:"https://playdoujin.mediascape.co.jp/", extra:[["English","https://en.playdouj.in/about-us/"]], note:"Free to read · Publishing label that brings doujin and Touhou fan games to consoles under ZUN's license. A later-stage path if the game grows. Does not fund projects." },
+  // Niche · Art & music
+  { id:"art-aseprite", stage:"artmusic", title:"Aseprite", url:"https://www.aseprite.org/", extra:[["Docs","https://www.aseprite.org/docs/"],["Steam","https://store.steampowered.com/app/431730/Aseprite/"]], note:"Paid: $19.99 on Steam (US) · The standard pixel art and animation tool. Exports sprite sheets with JSON data for Unity." },
+  { id:"art-lospec", stage:"artmusic", title:"Lospec: Pixel Art Tutorials and Palette List", url:"https://lospec.com/pixel-art-tutorials", extra:[["Palette List","https://lospec.com/palette-list"]], note:"Free · Curated pixel art tutorials and a huge palette library." },
+  { id:"art-saint11", stage:"artmusic", title:"Saint11 (Pedro Medeiros) pixel art tutorials", url:"https://saint11.art/blog/pixel-art-tutorials/", note:"Free · Bite-sized, widely shared pixel art and animation lessons." },
+  { id:"art-mortmort", stage:"artmusic", title:"MortMort (YouTube)", url:"https://www.youtube.com/@MortMort", note:"Free · Pixel art and Aseprite video tutorials." },
+  { id:"art-free-assets", stage:"artmusic", title:"Free assets: itch.io / Kenney / OpenGameArt / Freesound", url:"https://itch.io/game-assets/free", extra:[["Kenney","https://kenney.nl/assets"],["OpenGameArt","https://opengameart.org/"],["Freesound","https://freesound.org/"]], note:"Free (check each license) · Placeholder sprites, UI, sound effects. Touhou's own game assets and music files are not allowed under the guidelines; make or commission your own." },
+];
+/* ===================== end RESOURCES ===================== */
+
+const STAGES = [
+  { id:"start", name:"1 · Start here" },
+  { id:"csharp", name:"2 · C#" },
+  { id:"reference", name:"3 · Reference (keep open)" },
+  { id:"deeper", name:"4 · Going deeper" },
+  { id:"design", name:"5 · Game design" },
+  { id:"community", name:"6 · Community & help" },
+  { id:"rhythm", name:"Niche · Rhythm combat", niche:true },
+  { id:"grid", name:"Niche · Grid movement & enemy AI", niche:true },
+  { id:"farming", name:"Niche · Farming systems", niche:true },
+  { id:"roguelite", name:"Niche · Roguelite structure", niche:true },
+  { id:"touhou", name:"Niche · Touhou fan-work rules", niche:true, info:"⚠ The 2024 Japanese guideline (updated 2024-05-31) is the current one. The English page is an older Nov 2020 translation without the 2024 additions." },
+  { id:"artmusic", name:"Niche · Art & music", niche:true },
+];
+const PILLARS = [
+  { id:"farming", name:"🌾 Farming", c:"var(--green)" },
+  { id:"rhythm", name:"🥁 Rhythm combat", c:"var(--red)" },
+  { id:"roguelite", name:"🎲 Roguelite", c:"var(--purple)" },
+  { id:"touhou", name:"⛩ Touhou setting", c:"var(--gold)" },
+  { id:"social", name:"💝 Social & village", c:"var(--pink)" },
+];
+const FEAT_STATUS = ["Idea","Designing","In progress","Done"];
+const TASK_STATUS = ["To do","Doing","Done"];
+
+let uidN = 0;
+const uid = () => Date.now().toString(36) + (uidN++).toString(36) + Math.random().toString(36).slice(2,6);
+
+const STARTER_FEATURES = [
+  ["rhythm","Beat conductor & timing windows","Central clock synced to AudioSettings.dspTime; Perfect/Good/Miss windows (e.g. ±50ms / ±120ms)."],
+  ["rhythm","Grid movement on the beat","One tile per beat; off-beat input = miss/stumble. Optional beat indicator UI at the bottom."],
+  ["rhythm","Enemy patterns per beat","Each enemy type moves every N beats with a readable telegraph (fairies, youkai)."],
+  ["farming","Crop growth & day cycle","Plant, water, grow by days; sleeping ends the day. Seasons later."],
+  ["farming","Inventory & hotbar","Stackable items, tools, seeds; shared between farm and dungeon."],
+  ["farming","Shop & selling","Sell crops at the village (Human Village?), buy seeds and upgrades."],
+  ["roguelite","Procedural dungeon floors","Room-based or cellular grid floors; stairs to descend, boss every few floors."],
+  ["roguelite","Meta-progression between runs","Run loot/currency brought home unlocks farm upgrades, new crops, characters."],
+  ["touhou","Character roster","Playable/NPC list: Reimu, Marisa, … with roles (shop, quest giver, boss)."],
+  ["touhou","Fan-work guidelines check","Read and follow ZUN/Team Shanghai Alice's guidelines for doujin games before release."],
+].map(([pillar,title,desc]) => ({ id:uid(), pillar, title, desc, status:"Idea", starter:true }));
+
+const DEFAULT_STORY = () => ({
+  beats:[
+    "Arrival: the player steps through one of Yukari's boundaries and wakes up near the Human Village.",
+    "A chance meeting with Marisa, who takes an interest in the outsider.",
+    "Marisa hands over the artifact/tome for studying magic, at a steep price. The debt begins.",
+    "Beginning of spring: Marisa sets the rule. No leaving the plot until you can fend for yourself and the debt is paid.",
+    "First seeds planted on the small plot (farming tutorial).",
+    "First harvest sold at the Human Village.",
+    "Small invaders attack the plot (combat tutorial).",
+    "The player gradually chooses a combat style.",
+    "Debt paid off and the player can fend for themselves: Marisa lets them leave the plot. End of the prologue.",
+  ].map(text => ({ id:uid(), text, done:false })),
+  questions:[
+    "What is the artifact/tome exactly?",
+    "How do combat styles work, and how are they chosen?",
+    "How big is the debt, and what are the payment milestones?",
+    "Does the PCB incident (endless winter) hit at the end of year one and change farming?",
+    "Which other characters appear?",
+  ].map(text => ({ id:uid(), text, done:false })),
+  notes:"",
+  debt:{ total:10000, paid:0, unit:"yen" },
+  characters:[
+    { id:"ch-player", name:"The Outsider", role:"Player", color:"blue", desc:"An outsider who stumbled through a boundary into Gensokyo. Learns farming, magic and combat from scratch." },
+    { id:"ch-marisa", name:"Marisa Kirisame", role:"Mentor / creditor", color:"gold", desc:"Ordinary magician. Takes an interest in the player, sells them the means to study magic at a steep price, and won't let them leave the plot until the debt is paid. Beating her ends the demo." },
+    { id:"ch-yukari", name:"Yukari Yakumo", role:"Cause of the crossing · final test fight", color:"purple", desc:"Youkai of boundaries. Her boundary is how the player got here. Mostly offscreen until the end: her final fight is a test of the player's worth before she'll consider sending them back to their world." },
+    { id:"ch-reimu", name:"Reimu Hakurei", role:"Incident resolver", color:"red", desc:"Shrine maiden of the Hakurei Shrine. One of the trio who resolve the Perfect Cherry Blossom incident, beating Yukari alongside the player's final fight." },
+    { id:"ch-sakuya", name:"Sakuya Izayoi", role:"Incident resolver", color:"blue", desc:"Head maid of the Scarlet Devil Mansion. Part of the trio (with Marisa and Reimu) who resolve the Perfect Cherry Blossom incident." },
+  ],
+  timeline:[
+    "Year one: 112 short days (four 28-day seasons), leading up to the Perfect Cherry Blossom incident.",
+    "Arc 1 (prologue / debt arc): spring on the plot, under Marisa's rules.",
+    "Partway into year one, it becomes clear the second spring won't come. Small urgency: reach Yukari for a way home.",
+    "Final fight: Yukari tests the player's worth before she'll consider sending them back to their world.",
+    "Beating Yukari beats the game. At the same time, Marisa, Reimu and Sakuya beat Yukari, so the PCB incident resolves (mostly offscreen).",
+    "Spring proceeds normally. From year two onward, the player can keep playing freely.",
+  ].map(text => ({ id:uid(), text, done:false })),
+  demo:{
+    scope:"The demo runs until the player beats Marisa, or until the end of the first spring.",
+    after:"The game itself won't be crowdfunded. Any future support would go to the studio, or to an artist-support Patreon for the music and art, which is a separate project.\nLater: ask other Touhou fan-game devs whether they ran into problems.",
+  },
+});
+const STYLE_STATUS = ["Idea","Designing","In progress","Done"];
+const DEFAULT_COMBAT = () => ({
+  rule:"In combat areas, everything happens on a grid, moving on the beat like Crypt of the NecroDancer. The farm has free movement with no beat or music sync. Few bosses and a handful of important fights; most combat is normal area farming.",
+  inspiration:"Touhou Dystopian's character styles:\n• Flandre: tanky, parry\n• Marisa: ranged glass cannon\n• Mokou: berserk, explosive\n• Youmu: fast, balanced",
+  styles:[
+    { id:"st-magic", name:"Magic", based:"Marisa-based", color:"gold", desc:"Forward ranged projectiles, fired automatically as the player moves on the beat.", status:"Idea", notes:"" },
+    { id:"st-faith", name:"Faith", based:"Dance combos", color:"red", desc:"Stronger, slower spells cast by movement combos, e.g. Up-Down-Up or Move-Move-Stay. Like casting enchantments by dancing.", status:"Idea", notes:"" },
+    { id:"st-body", name:"Body", based:"Tank / graze", color:"green", desc:"Tanky. Rewards facing enemy projectiles or grazing: moving out of an attack one beat before it hits.", status:"Idea", notes:"" },
+    { id:"st-youkai", name:"Youkai / Element", based:"Tentative", color:"purple", desc:"The power to cast danmaku spells back at enemies.", status:"Idea", notes:"" },
+  ],
+  combos:[
+    { id:"cb-udu", inputs:"Up · Down · Up", beats:"3", effect:"", cost:"" },
+    { id:"cb-mms", inputs:"Move · Move · Stay", beats:"3", effect:"", cost:"" },
+  ],
+});
+const MUSIC_STATUS = ["Not started","Sketch","Done"];
+const MUSIC_VARIANTS = [["night","🌙 Night"],["farm","🌾 Farm"],["battle","⚔ Battle"]];
+const DEFAULT_MUSIC = () => ({
+  approach:"A few Balatro-style remakes of ZUN songs (about 4, one per season / act / character). Each song gets rhythm variants: Night / resting (lullaby-ish), Farming & travelling (normal), and Battle (upbeat, synth and guitar).",
+  songs:[
+    { id:"sg-spring", season:"🌸 Spring", song:"Marisa Stole the Precious Thing", character:"Marisa", cells:{night:0,farm:0,battle:0} },
+    { id:"sg-summer", season:"☀ Summer", song:"Hong Meiling or Suika Ibuki theme (undecided)", character:"Meiling / Suika (TBD)", cells:{night:0,farm:0,battle:0} },
+    { id:"sg-autumn", season:"🍁 Autumn", song:"U.N. Owen Was Her?", character:"Remilia / Flandre", cells:{night:0,farm:0,battle:0} },
+    { id:"sg-winter", season:"❄ Winter", song:"Necrofantasia", character:"Yukari", cells:{night:0,farm:0,battle:0} },
+  ],
+  credits:"• Credit ZUN and Team Shanghai Alice for every original composition.\n• Label the game clearly as a Touhou Project fan work.\n• Check the current 2024 guideline on arrangements, and on Patreon / crowdfunding: it says crowdfunding should basically be avoided, or Team Shanghai Alice contacted first.",
+});
+const DEFAULT_LOOP = () => ({
+  cycle:[
+    { id:"cy-wake", title:"Wake up", color:"gold", desc:"Start of a short day." },
+    { id:"cy-farm", title:"Tend the farm", color:"green", desc:"The village gives the player a big plot: remove herbs and wild shrubs, plow, plant, water, and care for livestock." },
+    { id:"cy-out", title:"Go out", color:"red", desc:"Head out to gain XP and better skills." },
+    { id:"cy-home", title:"Back home / rest", color:"blue", desc:"Return home and rest until the next day." },
+  ],
+  season:"Year one is 112 days: four 28-day seasons. Each season has an act boss to beat before the season ends. Urgency: prevent the eternal winter.",
+  movement:"Farm: free movement, with no beat or music sync. Combat areas: grid movement on the beat.",
+  training:"A dummy or training enemy on or near the farm, where the beat becomes more evident. Used for practice and for latency calibration.",
+  weekly:"Weekly events introduce more characters and let the player interact with them.",
+  secret:"Characters don't know the eternal winter is coming. It's only signaled through dialogue hints and the way the climate behaves.",
+  signals:[
+    { id:"sig-ex1", text:"Late frosts keep hitting the fields well into spring.", done:false, example:true },
+    { id:"sig-ex2", text:"The cherry trees are slow to bloom, and villagers remark on it.", done:false, example:true },
+    { id:"sig-ex3", text:"A villager grumbles that the snow on the mountain isn't melting this year.", done:false, example:true },
+  ],
+  events:[],
+  automation:[
+    { id:"au-irrigation", name:"Automatic irrigation", color:"blue", desc:"Waters crops without the daily chore.", status:"Idea" },
+    { id:"au-cirno", name:"Hire Cirno to feed livestock", color:"blue", desc:"Cirno takes over livestock feeding.", status:"Idea" },
+    { id:"au-cooking", name:"Cooking meals", color:"gold", desc:"Cooked meals sell for more and make better gifts.", status:"Idea" },
+    { id:"au-tools", name:"Better farm tools (upgrades)", color:"green", desc:"Upgraded tools make farm work faster.", status:"Idea" },
+  ],
+});
+const DEFAULT_SOCIAL = () => ({
+  intro:"Inspired by Hades and Stardew Valley, and explicitly not a dating sim. Giving gifts raises a character's affinity, and affinity milestones unlock passives that help on the quest.",
+  affinity:["Marisa","Reimu","Sakuya","Cirno","Yukari"].map(n => ({ id:"af-"+n.toLowerCase(), character:n, liked:"", disliked:"", passives:"" })),
+  vendors:[ { id:"vn-1", character:"", sells:"", schedule:"" }, { id:"vn-2", character:"", sells:"", schedule:"" } ],
+});
+const STARTER_FEATURES_V4 = [
+  ["sf4-daynight","farming","Day/night & daily schedule","Short days: wake up, farm, go out, rest. Clock and end-of-day handling."],
+  ["sf4-clearing","farming","Field clearing (weeds/shrubs)","Remove herbs and wild shrubs from the big plot before it can be farmed."],
+  ["sf4-plow","farming","Plow/plant/water actions","Core tile actions on the farm grid."],
+  ["sf4-livestock","farming","Livestock care","Feed and look after animals; produce goods."],
+  ["sf4-gifts","social","Gift & affinity system","Give gifts to raise affinity, with liked/disliked gifts per character."],
+  ["sf4-passives","social","Affinity passives","Affinity milestones unlock passives that help on the quest."],
+  ["sf4-vendors","social","Traveling vendor schedule","Characters pass through the village selling trinkets and food on a schedule."],
+  ["sf4-weekly","social","Weekly events calendar","One event per week that introduces or spotlights a character."],
+  ["sf4-climate","touhou","Climate signals system","Weather and dialogue hints that spring is going wrong, escalating toward the eternal winter."],
+  ["sf4-cooking","farming","Cooking system","Cook meals for higher sale value and better gifts."],
+  ["sf4-irrigation","farming","Auto-irrigation","Automatic watering for crop tiles."],
+  ["sf4-cirno","farming","Cirno livestock helper","Hire Cirno to feed the livestock."],
+  ["sf4-tools","farming","Tool upgrades","Better farm tools that speed up farm work."],
+];
+const DEFAULT_WORLD = () => ({
+  intro:"Gensokyo is one continuous world with no screen jumps between areas, for the feeling of being lost in Gensokyo.",
+  rule:"If the player walks from an unlocked area into a locked one (e.g. area 2 → 3 while 3 is locked), they seamlessly reappear on the LEFT side of area 1 (the farm). This makes Yukari's boundary felt throughout the game and creates the sense that any step could lead somewhere dangerous.",
+  impl:"• One continuous scene, or additive scene loading of neighbouring areas.\n• Camera follow with a confiner.\n• Seamless wrap: teleport the player AND the camera by the same offset, so the screen never visibly jumps.\n• Make the right edge of area 2 and the left edge of area 1 look similar (e.g. matching forest) to hide the seam.",
+  anomIntro:"The player should start to suspect something is off.",
+  anomalies:[
+    { id:"an-netherworld", title:"Glimpse of the Netherworld", trigger:"After defeating Marisa and unlocking the next fight area: one area transition.", sees:"The transition briefly shows another area: the Netherworld (Hakugyokurou), with the great tree (Saigyou Ayakashi) in the background and Yukari hovering near it.", repeat:"One-time", notes:"On the next transition the anomaly never happens again." },
+    { id:"an-foliage", title:"Dislocated / shifting foliage", trigger:"Changing areas.", sees:"2D foliage that seems moved or out of place between areas.", repeat:"Repeatable", notes:"Opens space for more hidden anomalies in the scenery and keeps constant doubt about whether something is off." },
+  ],
+  areas:[1,2,3,4,5,6,7,8].map(n => ({ id:"ar-"+n, name: n===1 ? "The farm" : "", unlocked: n===1, notes:"" })),
+});
+const STARTER_FEATURES_V5 = [
+  ["sf5-training","rhythm","Training area & dummy","A dummy or training enemy on/near the farm where the beat is more evident. Practice and latency calibration."],
+  ["sf5-freemove","farming","Free movement on farm (no beat)","Free movement on the farm with no beat or music sync; switch to grid-on-beat in combat areas."],
+  ["sf5-streaming","roguelite","Continuous area streaming","World: one continuous scene or additive loading of neighbouring areas, with no screen jumps."],
+  ["sf5-wrap","roguelite","Boundary wrap to farm","World: walking into a locked area wraps the player to the left side of the farm. Teleport player and camera by the same offset."],
+  ["sf5-unlock","roguelite","Area unlock progression","World: unlock areas 2–8 over the course of the game."],
+];
+const STARTER_FEATURES_V2 = [
+  ["sf2-faith-recognizer","rhythm","Faith dance-combo input recognizer","Buffer the last N beat-inputs (incl. 'stay') and match them against the Faith combo list."],
+  ["sf2-graze","rhythm","Graze-on-beat detection","Detect when the player leaves a tile one beat before an attack lands there; reward Body style."],
+  ["sf2-autofire","rhythm","Auto-fire on beat (Magic)","Fire a forward projectile automatically on each on-beat move."],
+  ["sf2-reflect","rhythm","Danmaku reflect (Youkai)","Turn incoming danmaku back at enemies (tentative Youkai / Element style)."],
+  ["sf2-calendar","farming","112-day calendar & season music swap","Four 28-day seasons in year one; switch the season's song when the season changes."],
+  ["sf2-music-layers","touhou","Adaptive music layers (night/farm/battle)","Crossfade or switch between the Night, Farm and Battle variants of the current song, kept on the same beat grid."],
+];
+function normalizeState(){
+  const d = DEFAULT_STORY(), st = (S.story && typeof S.story==="object") ? S.story : {};
+  S.story = {
+    beats: Array.isArray(st.beats) ? st.beats : d.beats,
+    questions: Array.isArray(st.questions) ? st.questions : d.questions,
+    notes: typeof st.notes==="string" ? st.notes : "",
+    debt: Object.assign({}, d.debt, st.debt||{}),
+    characters: Array.isArray(st.characters) ? st.characters : d.characters,
+    timeline: Array.isArray(st.timeline) ? st.timeline : d.timeline,
+    demo: Object.assign({}, d.demo, st.demo||{}),
+  };
+  const dc = DEFAULT_COMBAT(), c = (S.combat && typeof S.combat==="object") ? S.combat : {};
+  S.combat = { rule: typeof c.rule==="string" ? c.rule : dc.rule, inspiration: typeof c.inspiration==="string" ? c.inspiration : dc.inspiration,
+    styles: Array.isArray(c.styles) ? c.styles : dc.styles, combos: Array.isArray(c.combos) ? c.combos : dc.combos };
+  const dm = DEFAULT_MUSIC(), m = (S.music && typeof S.music==="object") ? S.music : {};
+  S.music = { approach: typeof m.approach==="string" ? m.approach : dm.approach, credits: typeof m.credits==="string" ? m.credits : dm.credits,
+    songs: Array.isArray(m.songs) ? m.songs : dm.songs };
+  const dl = DEFAULT_LOOP(), L = (S.loop && typeof S.loop==="object") ? S.loop : {};
+  S.loop = {};
+  ["season","weekly","secret","movement","training"].forEach(k => S.loop[k] = typeof L[k]==="string" ? L[k] : dl[k]);
+  ["cycle","signals","events","automation"].forEach(k => S.loop[k] = Array.isArray(L[k]) ? L[k] : dl[k]);
+  const ds = DEFAULT_SOCIAL(), So = (S.social && typeof S.social==="object") ? S.social : {};
+  S.social = { intro: typeof So.intro==="string" ? So.intro : ds.intro,
+    affinity: Array.isArray(So.affinity) ? So.affinity : ds.affinity, vendors: Array.isArray(So.vendors) ? So.vendors : ds.vendors };
+  const dw = DEFAULT_WORLD(), Wd = (S.world && typeof S.world==="object") ? S.world : {};
+  S.world = { intro: typeof Wd.intro==="string" ? Wd.intro : dw.intro, rule: typeof Wd.rule==="string" ? Wd.rule : dw.rule,
+    impl: typeof Wd.impl==="string" ? Wd.impl : dw.impl, areas: Array.isArray(Wd.areas) ? Wd.areas : dw.areas,
+    anomIntro: typeof Wd.anomIntro==="string" ? Wd.anomIntro : dw.anomIntro, anomalies: Array.isArray(Wd.anomalies) ? Wd.anomalies : dw.anomalies };
+  S.music.songs.forEach(sg => { sg.cells = Object.assign({night:0,farm:0,battle:0}, sg.cells||{}); });
+  // One-time migrations (run once per save; later user edits/deletions are respected)
+  if(!S.migrations || typeof S.migrations!=="object") S.migrations = {};
+  if(!S.migrations.v2){
+    STARTER_FEATURES_V2.forEach(([id,pillar,title,desc]) => { if(!S.features.some(f=>f.id===id)) S.features.push({ id, pillar, title, desc, status:"Idea", starter:true }); });
+    const q = S.story.questions;
+    const pcb = q.find(x => /PCB incident/i.test(x.text));
+    if(pcb){ pcb.done = true; pcb.partial = false; pcb.answer = "Decided: yes. Year one is 112 short days (four 28-day seasons) leading up to the Perfect Cherry Blossom incident. Partway through, it becomes clear the second spring won't come, so the player heads for Yukari. Beating her ends the game, the incident resolves, and spring proceeds normally in year two. How the endless winter changes farming: TBD."; }
+    const cs = q.find(x => /combat styles/i.test(x.text));
+    if(cs){ cs.done = false; cs.partial = true; cs.answer = "Partly decided: four style trees: Magic (auto-fire on beat), Faith (dance combos), Body (tank / graze), Youkai / Element (tentative, reflect danmaku). See the Combat tab. How they're chosen: TBD."; }
+    S.migrations.v2 = true;
+  }
+  if(!S.migrations.v3){
+    // Replace the old default demo note only if the user never edited it
+    if(S.story.demo.after === "Considering a Patreon, or paying a collaborator, after the demo.") S.story.demo.after = DEFAULT_STORY().demo.after;
+    S.migrations.v3 = true;
+  }
+  if(!S.migrations.v4){
+    STARTER_FEATURES_V4.forEach(([id,pillar,title,desc]) => { if(!S.features.some(f=>f.id===id)) S.features.push({ id, pillar, title, desc, status:"Idea", starter:true }); });
+    S.migrations.v4 = true;
+  }
+  if(!S.migrations.v5){
+    // 120-day year -> 112 days; farm free movement. Only replaces text that still matches the old defaults.
+    S.story.timeline.forEach(t => { if(t.text === "Year one: about 120 short days across four seasons, leading up to the Perfect Cherry Blossom incident.") t.text = "Year one: 112 short days (four 28-day seasons), leading up to the Perfect Cherry Blossom incident."; });
+    S.story.questions.forEach(q => { if(typeof q.answer==="string" && q.answer.startsWith("Decided: yes. Year one is about 120 short days (four seasons) leading up")) q.answer = q.answer.replace("Decided: yes. Year one is about 120 short days (four seasons) leading up", "Decided: yes. Year one is 112 short days (four 28-day seasons) leading up"); });
+    const cal = S.features.find(f => f.id==="sf2-calendar");
+    if(cal){ if(cal.title === "120-day calendar & season music swap") cal.title = "112-day calendar & season music swap"; if(cal.desc === "Four ~30-day seasons in year one; switch the season's song when the season changes.") cal.desc = "Four 28-day seasons in year one; switch the season's song when the season changes."; }
+    if(S.loop.season === "Each season has an act boss to beat before the season ends. Urgency: prevent the eternal winter.") S.loop.season = "Year one is 112 days: four 28-day seasons. Each season has an act boss to beat before the season ends. Urgency: prevent the eternal winter.";
+    if(S.combat.rule === "Everything happens on a grid, moving on the beat like Crypt of the NecroDancer. Few bosses and a handful of important fights; most combat is normal area farming.") S.combat.rule = "In combat areas, everything happens on a grid, moving on the beat like Crypt of the NecroDancer. The farm has free movement with no beat or music sync. Few bosses and a handful of important fights; most combat is normal area farming.";
+    STARTER_FEATURES_V5.forEach(([id,pillar,title,desc]) => { if(!S.features.some(f=>f.id===id)) S.features.push({ id, pillar, title, desc, status:"Idea", starter:true }); });
+    S.migrations.v5 = true;
+  }
+  if(!S.migrations.v6){
+    [["sf6-anomalies","touhou","One-time transition anomalies","Area transitions that briefly show somewhere else (e.g. the Netherworld with Yukari), then never happen again."],
+     ["sf6-foliage","touhou","Shifting foliage between areas","2D foliage that seems moved or out of place when changing areas; room for more hidden scenery anomalies."]]
+      .forEach(([id,pillar,title,desc]) => { if(!S.features.some(f=>f.id===id)) S.features.push({ id, pillar, title, desc, status:"Idea", starter:true }); });
+    if(!S.story.questions.some(q=>q.id==="q-movement")) S.story.questions.push({ id:"q-movement", text:"Player movement: grid hops everywhere, or free Stardew-style running on the farm?", done:false, partial:false });
+    S.migrations.v6 = true;
+  }
+  ["checked"].forEach(k => { if(!S[k] || typeof S[k]!=="object") S[k]={}; });
+  ["features","tasks","notes"].forEach(k => { if(!Array.isArray(S[k])) S[k]=[]; });
+}
+const DEFAULT_STATE = () => ({
+  version:1, checked:{}, features:STARTER_FEATURES.map(f=>({...f})),
+  tasks:[
+    { id:uid(), title:"Install Unity Hub + a Unity 6 LTS editor", desc:"", status:"To do", type:"task" },
+    { id:uid(), title:"Start the Unity Essentials Pathway", desc:"", status:"To do", type:"task" },
+  ],
+  notes:[], theme:null, story:DEFAULT_STORY(),
+});
+
+const KEY = "touhou-gamedev-dashboard-v1";
+let S;
+function load(){
+  try { const raw = localStorage.getItem(KEY); S = raw ? Object.assign(DEFAULT_STATE(), JSON.parse(raw)) : DEFAULT_STATE(); }
+  catch(e){ console.warn("Bad saved data, using defaults", e); S = DEFAULT_STATE(); }
+  normalizeState();
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ console.warn("Could not save", e); } }
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pct = (a,b) => b ? Math.round(a/b*100) : 0;
+
+/* ---------- tabs & theme ---------- */
+document.querySelectorAll("#nav button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("#nav button").forEach(x => x.classList.toggle("active", x===b));
+  document.querySelectorAll("section.tab").forEach(s => s.classList.toggle("active", s.id === "tab-"+b.dataset.tab));
+  location.hash = b.dataset.tab;
+  if(typeof fillBinds==="function") fillBinds("#tab-"+b.dataset.tab);
+}));
+function applyTheme(){
+  const t = S.theme || (matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.dataset.theme = t;
+  $("#themeBtn").textContent = t==="dark" ? "☀ Light" : "🌙 Dark";
+}
+$("#themeBtn").addEventListener("click", () => {
+  S.theme = document.documentElement.dataset.theme==="dark" ? "light" : "dark"; save(); applyTheme();
+});
+
+/* ---------- overview ---------- */
+function renderOverview(){
+  const sDone = RESOURCES.filter(r => S.checked[r.id]).length;
+  const tDone = S.tasks.filter(t => t.status==="Done").length;
+  const fDone = S.features.filter(f => f.status==="Done").length;
+  const p = pct(sDone+tDone, RESOURCES.length+S.tasks.length);
+  $("#ovBar").style.width = p+"%"; $("#ovPct").textContent = p+"%";
+  $("#ovStudy").textContent = sDone+"/"+RESOURCES.length;
+  $("#ovTasks").textContent = tDone+"/"+S.tasks.length;
+  $("#ovFeat").textContent = fDone+"/"+S.features.length;
+  document.querySelectorAll(".pf").forEach(el => {
+    const fs = S.features.filter(f => f.pillar===el.dataset.p);
+    const d = fs.filter(f => f.status==="Done").length;
+    el.innerHTML = `<div class="bar" style="height:7px;margin-top:10px"><div style="width:${pct(d,fs.length)}%"></div></div><div class="muted" style="font-size:.8rem;margin-top:3px">${d}/${fs.length} features done</div>`;
+  });
+}
+
+/* ---------- study ---------- */
+function renderStudy(){
+  const done = RESOURCES.filter(r => S.checked[r.id]).length;
+  $("#stBar").style.width = pct(done,RESOURCES.length)+"%";
+  $("#stTxt").textContent = `${done} of ${RESOURCES.length} resources checked (${pct(done,RESOURCES.length)}%). Add more in the RESOURCES array inside this file.`;
+  $("#stages").innerHTML = STAGES.map(st => {
+    const items = RESOURCES.filter(r => r.stage===st.id);
+    const d = items.filter(r => S.checked[r.id]).length;
+    const body = items.length ? items.map(r => `
+      <label class="res ${S.checked[r.id]?"done":""}">
+        <input type="checkbox" data-rid="${esc(r.id)}" ${S.checked[r.id]?"checked":""}>
+        <span class="rt"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a>${(r.extra||[]).map(([l,u])=>` · <a class="xl" href="${esc(u)}" target="_blank" rel="noopener">${esc(l)}</a>`).join("")}<br><span class="muted" style="font-size:.85rem">${esc(r.note||"")}</span></span>
+      </label>`).join("")
+      : `<div class="empty">📭 Empty for now: niche resources for this topic will be added here later.</div>`;
+    return `<div class="card stage"><div class="stage-h"><h3 style="margin:0">${esc(st.name)}</h3>${st.niche?(items.length?'<span class="pill">project-specific</span>':'<span class="pill todo-tag">to fill</span>'):""}
+      ${items.length?`<div class="bar"><div style="width:${pct(d,items.length)}%"></div></div><span class="muted" style="font-size:.85rem">${d}/${items.length}</span>`:""}</div>${st.info?`<div class="notice" style="margin:4px 0 8px">${esc(st.info)}</div>`:""}${body}</div>`;
+  }).join("");
+}
+$("#stages").addEventListener("change", e => {
+  const id = e.target.dataset.rid; if(!id) return;
+  if(e.target.checked) S.checked[id]=true; else delete S.checked[id];
+  save(); renderAll();
+});
+
+/* ---------- generic board (features & tasks) ---------- */
+function renderBoard(kind){
+  const isF = kind==="features";
+  const list = isF ? S.features : S.tasks, statuses = isF ? FEAT_STATUS : TASK_STATUS;
+  const filt = isF ? $("#featFilter").value : "all";
+  const board = isF ? $("#featBoard") : $("#taskBoard");
+  board.innerHTML = statuses.map(st => {
+    const its = list.filter(x => x.status===st && (filt==="all" || x.pillar===filt));
+    return `<div class="col" data-kind="${kind}" data-status="${esc(st)}">
+      <div class="col-h"><h3 style="margin:0">${esc(st)}</h3><span class="pill">${its.length}</span></div>
+      ${its.map(x => itemHTML(kind,x,statuses)).join("") || '<div class="muted" style="font-size:.85rem;text-align:center;padding:10px">Drop cards here</div>'}
+    </div>`;
+  }).join("");
+}
+function itemHTML(kind,x,statuses){
+  const isF = kind==="features";
+  const P = isF ? PILLARS.find(p => p.id===x.pillar) : null;
+  const c = isF ? (P?P.c:"var(--red)") : (x.type==="bug" ? "var(--red)" : "var(--blue)");
+  const i = statuses.indexOf(x.status);
+  const tag = isF ? `<span class="pill" style="font-size:.7rem">${esc(P?P.name:x.pillar)}</span>${x.starter?' <span class="pill todo-tag" style="font-size:.7rem">starter</span>':""}`
+                  : `<span class="pill" style="font-size:.7rem">${x.type==="bug"?"🐞 bug":"✔ task"}</span>`;
+  return `<div class="item" draggable="true" data-kind="${kind}" data-id="${esc(x.id)}" style="--c:${c}">
+    <div>${tag}</div><div class="it">${esc(x.title)}</div>${x.desc?`<div class="id">${esc(x.desc)}</div>`:""}
+    <div class="acts">
+      <button class="btn sm" data-act="left" ${i<=0?"disabled":""} title="Move left">◀</button>
+      <button class="btn sm" data-act="right" ${i>=statuses.length-1?"disabled":""} title="Move right">▶</button>
+      <button class="btn sm" data-act="edit">Edit</button>
+      <button class="btn sm" data-act="del">Delete</button>
+    </div></div>`;
+}
+function listOf(kind){ return kind==="features" ? S.features : S.tasks; }
+function statusesOf(kind){ return kind==="features" ? FEAT_STATUS : TASK_STATUS; }
+function boardClick(e){
+  const b = e.target.closest("button[data-act]"); if(!b) return;
+  const card = b.closest(".item"), kind = card.dataset.kind, list = listOf(kind);
+  const x = list.find(y => y.id===card.dataset.id); if(!x) return;
+  const sts = statusesOf(kind), i = sts.indexOf(x.status);
+  if(b.dataset.act==="left" && i>0) x.status = sts[i-1];
+  else if(b.dataset.act==="right" && i<sts.length-1) x.status = sts[i+1];
+  else if(b.dataset.act==="del"){ if(!confirm(`Delete "${x.title}"?`)) return; list.splice(list.indexOf(x),1); }
+  else if(b.dataset.act==="edit"){ openModal(kind,x); return; }
+  save(); renderAll();
+}
+let dragId=null, dragKind=null;
+function setupDnD(board){
+  board.addEventListener("click", boardClick);
+  board.addEventListener("dragstart", e => { const it=e.target.closest(".item"); if(!it) return; dragId=it.dataset.id; dragKind=it.dataset.kind; it.classList.add("dragging"); try{e.dataTransfer.setData("text/plain",dragId);}catch(_){} });
+  board.addEventListener("dragend", e => { const it=e.target.closest(".item"); if(it) it.classList.remove("dragging"); board.querySelectorAll(".over").forEach(c=>c.classList.remove("over")); });
+  board.addEventListener("dragover", e => { const col=e.target.closest(".col"); if(!col||col.dataset.kind!==dragKind) return; e.preventDefault(); board.querySelectorAll(".over").forEach(c=>c!==col&&c.classList.remove("over")); col.classList.add("over"); });
+  board.addEventListener("drop", e => { const col=e.target.closest(".col"); if(!col||col.dataset.kind!==dragKind) return; e.preventDefault();
+    const x = listOf(dragKind).find(y=>y.id===dragId); if(x){ x.status = col.dataset.status; save(); renderAll(); } dragId=null; });
+}
+setupDnD($("#featBoard")); setupDnD($("#taskBoard"));
+PILLARS.forEach(p => $("#featFilter").insertAdjacentHTML("beforeend", `<option value="${p.id}">${esc(p.name)}</option>`));
+$("#featFilter").addEventListener("change", () => renderBoard("features"));
+
+/* ---------- modal ---------- */
+let mCtx=null;
+function openModal(kind, x){
+  mCtx = { kind, x };
+  const isF = kind==="features", sts = statusesOf(kind);
+  $("#mTitle").textContent = (x ? "Edit " : "New ") + (isF ? "feature" : "task / bug");
+  $("#mName").value = x ? x.title : ""; $("#mDesc").value = x ? (x.desc||"") : "";
+  const sel = (id,opts,v) => `<select id="${id}">${opts.map(o=>`<option value="${esc(o[0])}" ${o[0]===v?"selected":""}>${esc(o[1])}</option>`).join("")}</select>`;
+  $("#mExtra").innerHTML = (isF
+    ? `<label>Pillar</label>${sel("mPillar",PILLARS.map(p=>[p.id,p.name]), x?x.pillar:($("#featFilter").value!=="all"?$("#featFilter").value:"farming"))}`
+    : `<label>Type</label>${sel("mType",[["task","✔ Task"],["bug","🐞 Bug"]], x?x.type:"task")}`)
+    + `<label>Status</label>${sel("mStatus", sts.map(s=>[s,s]), x?x.status:sts[0])}`;
+  $("#modal").classList.add("open"); $("#mName").focus();
+}
+function closeModal(){ $("#modal").classList.remove("open"); mCtx=null; }
+$("#mCancel").addEventListener("click", closeModal);
+$("#modal").addEventListener("click", e => { if(e.target.id==="modal") closeModal(); });
+document.addEventListener("keydown", e => { if(e.key==="Escape" && mCtx) closeModal(); });
+$("#mSave").addEventListener("click", () => {
+  if(!mCtx) return;
+  const title = $("#mName").value.trim(); if(!title){ $("#mName").focus(); return; }
+  const { kind } = mCtx; let x = mCtx.x;
+  if(!x){ x = { id:uid() }; listOf(kind).push(x); }
+  x.title = title; x.desc = $("#mDesc").value.trim(); x.status = $("#mStatus").value;
+  if(kind==="features"){ if(x.pillar && x.pillar!==$("#mPillar").value) x.starter=false; x.pillar = $("#mPillar").value; }
+  else x.type = $("#mType").value;
+  save(); closeModal(); renderAll();
+});
+$("#addFeat").addEventListener("click", () => openModal("features", null));
+$("#addTask").addEventListener("click", () => openModal("tasks", null));
+
+/* ---------- notes ---------- */
+function renderNotes(){
+  const list = S.notes.slice().sort((a,b)=>b.ts-a.ts);
+  $("#noteList").innerHTML = list.length ? list.map(n => `<div class="note" data-id="${esc(n.id)}">
+    <div class="nd">${esc(new Date(n.ts).toLocaleString())}</div><div class="nb">${esc(n.text)}</div>
+    <div class="acts" style="display:flex;gap:4px"><button class="btn sm" data-nact="edit">Edit</button><button class="btn sm" data-nact="del">Delete</button></div></div>`).join("")
+    : '<div class="empty" style="grid-column:1/-1">No notes yet. Every great youkai scheme starts with a scribble.</div>';
+}
+$("#addNote").addEventListener("click", () => {
+  const t = $("#noteText").value.trim(); if(!t) return;
+  S.notes.push({ id:uid(), text:t, ts:Date.now() }); $("#noteText").value=""; save(); renderNotes();
+});
+$("#noteList").addEventListener("click", e => {
+  const b = e.target.closest("button[data-nact]"); if(!b) return;
+  const n = S.notes.find(y => y.id===b.closest(".note").dataset.id); if(!n) return;
+  if(b.dataset.nact==="del"){ if(!confirm("Delete this note?")) return; S.notes.splice(S.notes.indexOf(n),1); }
+  else { const t = prompt("Edit note", n.text); if(t===null) return; n.text = t.trim() || n.text; }
+  save(); renderNotes();
+});
+
+/* ---------- export / import ---------- */
+$("#exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(S,null,2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "gamedev-dashboard-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+});
+$("#importBtn").addEventListener("click", () => $("#importFile").click());
+$("#importFile").addEventListener("change", e => {
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const d = JSON.parse(rd.result);
+      if(typeof d!=="object" || !Array.isArray(d.features) || !Array.isArray(d.tasks)) throw new Error("Not a dashboard backup");
+      if(!confirm("Replace current dashboard data with this backup?")) return;
+      S = Object.assign(DEFAULT_STATE(), d); normalizeState(); save(); applyTheme(); renderAll();
+    } catch(err){ alert("Import failed: " + err.message); }
+    e.target.value = "";
+  };
+  rd.readAsText(f);
+});
+
+/* ---------- story ---------- */
+function renderElist(sel, list, opts){
+  $(sel).innerHTML = list.length ? list.map((x,i) => `<li class="${x.done?"done":""}" data-id="${esc(x.id)}">
+    <input type="checkbox" data-eact="toggle" ${x.done?"checked":""} title="${opts.checkTitle}">
+    <span class="lt">${opts.numbered?`<b>${i+1}.</b> `:""}${esc(x.text)}</span>
+    <span class="acts">${opts.movable?`<button class="btn sm" data-eact="up" ${i===0?"disabled":""} title="Move up">▲</button><button class="btn sm" data-eact="down" ${i===list.length-1?"disabled":""} title="Move down">▼</button>`:""}
+    <button class="btn sm" data-eact="edit">Edit</button><button class="btn sm" data-eact="del">✕</button></span></li>`).join("")
+    : '<li class="muted">Nothing here yet.</li>';
+}
+function renderStory(){
+  const st = S.story, bd = st.beats.filter(b=>b.done).length;
+  renderElist("#beatList", st.beats, { numbered:true, movable:true, checkTitle:"Written / done" });
+  renderQuestions(); renderChars(); renderTimeline(); fillBinds("#tab-story");
+  $("#beatBar").style.width = pct(bd, st.beats.length)+"%";
+  if(document.activeElement !== $("#storyNotes")) $("#storyNotes").value = st.notes;
+  renderDebt();
+}
+function renderDebt(){
+  const d = S.story.debt, total = Math.max(0, +d.total||0), paid = Math.max(0, +d.paid||0);
+  ["debtTotal","debtPaid","debtUnit"].forEach((id,i) => { const el=$("#"+id); if(document.activeElement!==el) el.value = [d.total,d.paid,d.unit][i]; });
+  const p = Math.min(100, pct(paid,total)), left = Math.max(0, total-paid), u = esc(d.unit||"");
+  $("#debtBar").style.width = p+"%";
+  $("#debtTxt").innerHTML = total && paid>=total ? `🎉 Debt cleared! ${paid.toLocaleString()} ${u} paid. Marisa grudgingly lets you leave the plot.`
+    : `${paid.toLocaleString()} / ${total.toLocaleString()} ${u} paid (${p}%). <span class="muted">${left.toLocaleString()} ${u} to go.</span>`;
+}
+function elistHandler(listKey, label){
+  return e => {
+    const b = e.target.closest("[data-eact]"); if(!b) return;
+    const list = S.story[listKey], li = b.closest("li"), i = list.findIndex(x => x.id===li.dataset.id); if(i<0) return;
+    const x = list[i], a = b.dataset.eact;
+    if(a==="toggle") x.done = b.checked;
+    else if(a==="up" && i>0) [list[i-1],list[i]] = [list[i],list[i-1]];
+    else if(a==="down" && i<list.length-1) [list[i+1],list[i]] = [list[i],list[i+1]];
+    else if(a==="edit"){ const t = prompt("Edit "+label, x.text); if(t===null) return; x.text = t.trim() || x.text; }
+    else if(a==="del"){ if(!confirm("Delete this "+label+"?")) return; list.splice(i,1); }
+    else return;
+    save(); renderStory();
+  };
+}
+$("#beatList").addEventListener("click", elistHandler("beats","beat"));
+function qState(x){ return x.done ? "Decided" : x.partial ? "Partly decided" : "Open"; }
+function renderQuestions(){
+  const list = S.story.questions;
+  $("#qList").innerHTML = list.length ? list.map((x,i) => `<li class="${x.done?"done":""}" data-id="${esc(x.id)}">
+    <span class="lt" style="text-decoration:none;opacity:1"><span ${x.done?'style="text-decoration:line-through;opacity:.6"':""}>${esc(x.text)}</span>
+      ${x.answer?`<div class="qans ${x.partial&&!x.done?"partial":""}">${esc(x.answer)}</div>`:""}</span>
+    <span class="acts" style="flex-wrap:wrap;justify-content:flex-end;max-width:190px">
+      <select class="cell-st ${x.done?"s2":x.partial?"s1":"s0"}" data-qact="state" title="Status">${["Open","Partly decided","Decided"].map(o=>`<option ${o===qState(x)?"selected":""}>${o}</option>`).join("")}</select>
+      <button class="btn sm" data-qact="answer">Answer</button><button class="btn sm" data-qact="edit">Edit</button><button class="btn sm" data-qact="del">✕</button></span></li>`).join("")
+    : '<li class="muted">Nothing here yet.</li>';
+}
+function qHandler(e){
+  const b = e.target.closest("[data-qact]"); if(!b) return;
+  if(b.tagName==="SELECT" && e.type!=="change") return;
+  const list = S.story.questions, i = list.findIndex(x => x.id===b.closest("li").dataset.id); if(i<0) return;
+  const x = list[i], a = b.dataset.qact;
+  if(a==="state"){ x.done = b.value==="Decided"; x.partial = b.value==="Partly decided"; }
+  else if(a==="answer"){ const t = prompt("Answer / decision", x.answer||""); if(t===null) return; x.answer = t.trim(); }
+  else if(a==="edit"){ const t = prompt("Edit question", x.text); if(t===null) return; x.text = t.trim() || x.text; }
+  else if(a==="del"){ if(!confirm("Delete this question?")) return; list.splice(i,1); }
+  save(); renderStory();
+}
+$("#qList").addEventListener("click", qHandler);
+$("#qList").addEventListener("change", qHandler);
+
+/* ---------- generic data-bind (contenteditable / textarea / input) ---------- */
+function getPath(path){ return path.split(".").reduce((o,k) => o==null ? o : o[k], S); }
+function setPath(path, v){ const ks = path.split("."), last = ks.pop(); const o = ks.reduce((o,k) => o[k], S); if(o) o[last] = v; }
+function fillBinds(scope){
+  document.querySelectorAll(scope+" [data-bind]").forEach(el => {
+    if(el === document.activeElement) return;
+    const v = getPath(el.dataset.bind) ?? "";
+    if(el.isContentEditable || el.getAttribute("contenteditable")==="true") el.innerText = v; else el.value = v;
+  });
+}
+let bindT = null;
+document.addEventListener("input", e => {
+  const el = e.target.closest && e.target.closest("[data-bind]"); if(!el) return;
+  const v = el.getAttribute("contenteditable")==="true" ? el.innerText.replace(/\n$/,"") : el.value;
+  setPath(el.dataset.bind, v);
+  clearTimeout(bindT); bindT = setTimeout(save, 250);
+  if(el.dataset.bind.startsWith("music.")) renderMusicProgress();
+});
+document.addEventListener("focusout", e => { if(e.target.closest && e.target.closest("[data-bind]")){ clearTimeout(bindT); save(); } });
+
+/* ---------- characters ---------- */
+const COLORS = { red:"var(--red)", gold:"var(--gold)", blue:"var(--blue)", green:"var(--green)", purple:"var(--purple)" };
+function renderChars(){
+  $("#charList").innerHTML = S.story.characters.map((c,i) => `<div class="char" style="--c:${COLORS[c.color]||"var(--red)"}">
+    <div style="display:flex;justify-content:space-between;gap:6px"><div class="role" contenteditable="true" data-bind="story.characters.${i}.role"></div>
+    <button class="btn sm" data-cdel="${i}" title="Delete character">✕</button></div>
+    <h3 contenteditable="true" data-bind="story.characters.${i}.name"></h3>
+    <div class="muted" contenteditable="true" data-bind="story.characters.${i}.desc"></div></div>`).join("");
+}
+$("#charList").addEventListener("click", e => {
+  const b = e.target.closest("[data-cdel]"); if(!b) return;
+  const c = S.story.characters[+b.dataset.cdel]; if(!c || !confirm(`Delete ${c.name}?`)) return;
+  S.story.characters.splice(+b.dataset.cdel,1); save(); renderStory();
+});
+$("#charAdd").addEventListener("click", () => {
+  const ks = Object.keys(COLORS);
+  S.story.characters.push({ id:uid(), name:"New character", role:"Role", color:ks[S.story.characters.length % ks.length], desc:"Description…" }); save(); renderStory();
+});
+
+/* ---------- timeline ---------- */
+function renderTimeline(){
+  const list = S.story.timeline;
+  $("#tlList").innerHTML = list.length ? list.map((x,i) => `<li class="${x.done?"done":""}" data-id="${esc(x.id)}">
+    <input type="checkbox" data-eact="toggle" ${x.done?"checked":""} title="Written / done" style="margin-top:4px;accent-color:var(--red)">
+    <span class="lt">${esc(x.text)}</span>
+    <span class="acts"><button class="btn sm" data-eact="up" ${i===0?"disabled":""}>▲</button><button class="btn sm" data-eact="down" ${i===list.length-1?"disabled":""}>▼</button>
+    <button class="btn sm" data-eact="edit">Edit</button><button class="btn sm" data-eact="del">✕</button></span></li>`).join("")
+    : '<li class="muted">Nothing here yet.</li>';
+}
+$("#tlList").addEventListener("click", elistHandler("timeline","timeline entry"));
+$("#tlAdd").addEventListener("click", () => addTo("timeline","#tlNew"));
+$("#tlNew").addEventListener("keydown", e => { if(e.key==="Enter") addTo("timeline","#tlNew"); });
+
+/* ---------- combat ---------- */
+function renderCombat(){
+  const C = S.combat;
+  $("#styleList").innerHTML = C.styles.map((st,i) => `<div class="card style-card" style="--c:${COLORS[st.color]||"var(--red)"}" data-i="${i}">
+    <div class="shead"><h3 style="margin:0" contenteditable="true" data-bind="combat.styles.${i}.name"></h3>
+      <select class="cell-st s0" data-bind="combat.styles.${i}.status">${STYLE_STATUS.map(o=>`<option>${o}</option>`).join("")}</select></div>
+    <div class="pill" style="margin:4px 0 6px" contenteditable="true" data-bind="combat.styles.${i}.based"></div>
+    <div contenteditable="true" data-bind="combat.styles.${i}.desc" style="font-size:.92rem"></div>
+    <textarea placeholder="Notes: skills, upgrades, synergies…" data-bind="combat.styles.${i}.notes"></textarea>
+    <div style="text-align:right;margin-top:4px"><button class="btn sm" data-sdel="${i}">Delete</button></div></div>`).join("");
+  $("#comboBody").innerHTML = C.combos.length ? C.combos.map((cb,i) => `<tr>
+    <td><input type="text" data-bind="combat.combos.${i}.inputs" placeholder="e.g. Up · Down · Up"></td>
+    <td><input type="text" data-bind="combat.combos.${i}.beats" placeholder="3"></td>
+    <td><input type="text" data-bind="combat.combos.${i}.effect" placeholder="TBD"></td>
+    <td><input type="text" data-bind="combat.combos.${i}.cost" placeholder="TBD"></td>
+    <td><button class="btn sm" data-cbdel="${i}" title="Delete row">✕</button></td></tr>`).join("")
+    : '<tr><td colspan="5" class="muted">No combos yet.</td></tr>';
+  fillBinds("#tab-combat");
+}
+$("#styleList").addEventListener("click", e => {
+  const b = e.target.closest("[data-sdel]"); if(!b) return;
+  const st = S.combat.styles[+b.dataset.sdel]; if(!st || !confirm(`Delete style "${st.name}"?`)) return;
+  S.combat.styles.splice(+b.dataset.sdel,1); save(); renderCombat();
+});
+$("#styleList").addEventListener("change", e => { if(e.target.tagName==="SELECT") save(); });
+$("#styleAdd").addEventListener("click", () => { S.combat.styles.push({ id:uid(), name:"New style", based:"Concept", color:"blue", desc:"Description…", status:"Idea", notes:"" }); save(); renderCombat(); });
+$("#comboBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-cbdel]"); if(!b) return;
+  if(!confirm("Delete this combo?")) return; S.combat.combos.splice(+b.dataset.cbdel,1); save(); renderCombat();
+});
+$("#comboAdd").addEventListener("click", () => { S.combat.combos.push({ id:uid(), inputs:"", beats:"", effect:"", cost:"" }); save(); renderCombat(); });
+
+/* ---------- music ---------- */
+function renderMusic(){
+  $("#songBody").innerHTML = S.music.songs.map((sg,i) => `<tr>
+    <td class="season-pill">${esc(sg.season)}</td>
+    <td><input type="text" data-bind="music.songs.${i}.song"></td>
+    <td><input type="text" data-bind="music.songs.${i}.character"></td>
+    ${MUSIC_VARIANTS.map(([k]) => { const v = +sg.cells[k]||0; return `<td><button class="cell-st s${v}" data-song="${i}" data-var="${k}">${MUSIC_STATUS[v]}</button></td>`; }).join("")}
+  </tr>`).join("");
+  fillBinds("#tab-music"); renderMusicProgress();
+}
+function renderMusicProgress(){
+  let tot=0, pts=0; S.music.songs.forEach(sg => MUSIC_VARIANTS.forEach(([k]) => { tot+=2; pts += Math.min(2, +sg.cells[k]||0); }));
+  const done = S.music.songs.reduce((n,sg) => n + MUSIC_VARIANTS.filter(([k]) => +sg.cells[k]===2).length, 0);
+  $("#musicBar").style.width = pct(pts,tot)+"%";
+  $("#musicTxt").textContent = `${done} of ${tot/2} tracks done · ${pct(pts,tot)}% (a sketch counts as half)`;
+}
+$("#songBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-song]"); if(!b) return;
+  const sg = S.music.songs[+b.dataset.song]; sg.cells[b.dataset.var] = ((+sg.cells[b.dataset.var]||0) + 1) % MUSIC_STATUS.length;
+  save(); renderMusic();
+});
+function addTo(listKey, inputSel){
+  const t = $(inputSel).value.trim(); if(!t) return;
+  S.story[listKey].push({ id:uid(), text:t, done:false }); $(inputSel).value=""; save(); renderStory();
+}
+$("#beatAdd").addEventListener("click", () => addTo("beats","#beatNew"));
+$("#qAdd").addEventListener("click", () => addTo("questions","#qNew"));
+$("#beatNew").addEventListener("keydown", e => { if(e.key==="Enter") addTo("beats","#beatNew"); });
+$("#qNew").addEventListener("keydown", e => { if(e.key==="Enter") addTo("questions","#qNew"); });
+let notesT=null;
+$("#storyNotes").addEventListener("input", e => {
+  S.story.notes = e.target.value; clearTimeout(notesT);
+  $("#storySaved").textContent = "Saving…";
+  notesT = setTimeout(() => { save(); $("#storySaved").textContent = "Saved ✓"; }, 300);
+});
+$("#storyNotes").addEventListener("blur", () => { clearTimeout(notesT); save(); $("#storySaved").textContent = "Saved ✓"; });
+["debtTotal","debtPaid"].forEach(id => $("#"+id).addEventListener("input", e => {
+  const v = parseFloat(e.target.value); S.story.debt[id==="debtTotal"?"total":"paid"] = isFinite(v) && v>=0 ? v : 0; save(); renderDebt();
+}));
+$("#debtUnit").addEventListener("input", e => { S.story.debt.unit = e.target.value; save(); renderDebt(); });
+$("#debtPay").addEventListener("click", () => {
+  const v = parseFloat($("#debtPayAmt").value); if(!isFinite(v) || v<=0) return;
+  S.story.debt.paid = (+S.story.debt.paid||0) + v; $("#debtPayAmt").value=""; save(); renderDebt();
+});
+
+/* ---------- game loop ---------- */
+function simpleList(sel, list, label){
+  $(sel).innerHTML = list.length ? list.map((x,i) => `<li class="${x.done?"done":""}" data-i="${i}">
+    <input type="checkbox" data-lact="toggle" ${x.done?"checked":""} title="Used / done">
+    <span class="lt">${x.example?'<span class="pill ex-tag" style="font-size:.7rem">example</span> ':""}${esc(x.text)}</span>
+    <span class="acts"><button class="btn sm" data-lact="up" ${i===0?"disabled":""}>▲</button><button class="btn sm" data-lact="down" ${i===list.length-1?"disabled":""}>▼</button>
+    <button class="btn sm" data-lact="edit">Edit</button><button class="btn sm" data-lact="del">✕</button></span></li>`).join("")
+    : `<li class="muted">Nothing here yet. Add the first ${label} below.</li>`;
+}
+function wireList(sel, getList, label, rerender, addInput, addBtn){
+  $(sel).addEventListener("click", e => {
+    const b = e.target.closest("[data-lact]"); if(!b) return;
+    const list = getList(), i = +b.closest("li").dataset.i, x = list[i]; if(!x) return;
+    const a = b.dataset.lact;
+    if(a==="toggle") x.done = b.checked;
+    else if(a==="up" && i>0) [list[i-1],list[i]] = [list[i],list[i-1]];
+    else if(a==="down" && i<list.length-1) [list[i+1],list[i]] = [list[i],list[i+1]];
+    else if(a==="edit"){ const t = prompt("Edit "+label, x.text); if(t===null) return; const v = t.trim(); if(v && v!==x.text){ x.text = v; x.example = false; } }
+    else if(a==="del"){ if(!confirm("Delete this "+label+"?")) return; list.splice(i,1); }
+    else return;
+    save(); rerender();
+  });
+  const add = () => { const t = $(addInput).value.trim(); if(!t) return; getList().push({ id:uid(), text:t, done:false }); $(addInput).value=""; save(); rerender(); };
+  $(addBtn).addEventListener("click", add);
+  $(addInput).addEventListener("keydown", e => { if(e.key==="Enter") add(); });
+}
+function renderLoop(){
+  const L = S.loop;
+  $("#cycleList").innerHTML = L.cycle.map((c,i) => `${i?'<div class="carrow">➜</div>':""}<div class="cstep" style="--c:${COLORS[c.color]||"var(--red)"}">
+    <span class="cn">${i+1}</span><h3 contenteditable="true" data-bind="loop.cycle.${i}.title"></h3>
+    <div class="cd" contenteditable="true" data-bind="loop.cycle.${i}.desc"></div>
+    <div style="text-align:right;margin-top:6px"><button class="btn sm" data-cydel="${i}" title="Delete step">✕</button></div></div>`).join("");
+  simpleList("#sigList", L.signals, "signal");
+  simpleList("#evList", L.events, "weekly event");
+  $("#autoList").innerHTML = L.automation.map((a,i) => `<div class="card style-card" style="--c:${COLORS[a.color]||"var(--green)"}">
+    <div class="shead"><h3 style="margin:0" contenteditable="true" data-bind="loop.automation.${i}.name"></h3></div>
+    <select class="cell-st s0" style="margin:6px 0" data-bind="loop.automation.${i}.status">${STYLE_STATUS.map(o=>`<option>${o}</option>`).join("")}</select>
+    <div contenteditable="true" data-bind="loop.automation.${i}.desc" style="font-size:.9rem"></div>
+    <div style="text-align:right;margin-top:6px"><button class="btn sm" data-audel="${i}">Delete</button></div></div>`).join("") || '<div class="muted">No automation ideas yet.</div>';
+  fillBinds("#tab-loop");
+}
+wireList("#sigList", () => S.loop.signals, "signal", renderLoop, "#sigNew", "#sigAdd");
+wireList("#evList", () => S.loop.events, "weekly event", renderLoop, "#evNew", "#evAdd");
+$("#cycleList").addEventListener("click", e => {
+  const b = e.target.closest("[data-cydel]"); if(!b) return;
+  const c = S.loop.cycle[+b.dataset.cydel]; if(!c || !confirm(`Delete step "${c.title}"?`)) return;
+  S.loop.cycle.splice(+b.dataset.cydel,1); save(); renderLoop();
+});
+$("#cycleAdd").addEventListener("click", () => { S.loop.cycle.push({ id:uid(), title:"New step", color:"purple", desc:"Description…" }); save(); renderLoop(); });
+$("#autoList").addEventListener("click", e => {
+  const b = e.target.closest("[data-audel]"); if(!b) return;
+  const a = S.loop.automation[+b.dataset.audel]; if(!a || !confirm(`Delete "${a.name}"?`)) return;
+  S.loop.automation.splice(+b.dataset.audel,1); save(); renderLoop();
+});
+$("#autoAdd").addEventListener("click", () => { S.loop.automation.push({ id:uid(), name:"New automation", color:"green", desc:"Description…", status:"Idea" }); save(); renderLoop(); });
+
+/* ---------- social ---------- */
+function renderSocial(){
+  const So = S.social;
+  $("#affBody").innerHTML = So.affinity.length ? So.affinity.map((r,i) => `<tr>
+    <td><input type="text" data-bind="social.affinity.${i}.character" placeholder="Character"></td>
+    <td><input type="text" data-bind="social.affinity.${i}.liked" placeholder="TBD"></td>
+    <td><input type="text" data-bind="social.affinity.${i}.disliked" placeholder="TBD"></td>
+    <td><input type="text" data-bind="social.affinity.${i}.passives" placeholder="TBD (e.g. ♥3: …, ♥6: …)"></td>
+    <td><button class="btn sm" data-afdel="${i}" title="Delete row">✕</button></td></tr>`).join("")
+    : '<tr><td colspan="5" class="muted">No characters yet.</td></tr>';
+  $("#venBody").innerHTML = So.vendors.length ? So.vendors.map((r,i) => `<tr>
+    <td><input type="text" data-bind="social.vendors.${i}.character" placeholder="TBD"></td>
+    <td><input type="text" data-bind="social.vendors.${i}.sells" placeholder="TBD (trinkets, food…)"></td>
+    <td><input type="text" data-bind="social.vendors.${i}.schedule" placeholder="TBD (e.g. every 3rd day)"></td>
+    <td><button class="btn sm" data-vndel="${i}" title="Delete row">✕</button></td></tr>`).join("")
+    : '<tr><td colspan="4" class="muted">No vendors yet.</td></tr>';
+  fillBinds("#tab-social");
+}
+$("#affBody").addEventListener("click", e => { const b = e.target.closest("[data-afdel]"); if(!b || !confirm("Delete this row?")) return; S.social.affinity.splice(+b.dataset.afdel,1); save(); renderSocial(); });
+$("#venBody").addEventListener("click", e => { const b = e.target.closest("[data-vndel]"); if(!b || !confirm("Delete this row?")) return; S.social.vendors.splice(+b.dataset.vndel,1); save(); renderSocial(); });
+$("#affAdd").addEventListener("click", () => { S.social.affinity.push({ id:uid(), character:"", liked:"", disliked:"", passives:"" }); save(); renderSocial(); });
+$("#venAdd").addEventListener("click", () => { S.social.vendors.push({ id:uid(), character:"", sells:"", schedule:"" }); save(); renderSocial(); });
+
+/* ---------- world map ---------- */
+function renderWorld(){
+  const A = S.world.areas;
+  // first locked area that sits right after an unlocked one = where the boundary bites
+  const bIdx = A.findIndex((a,i) => !a.unlocked && i>0 && A[i-1].unlocked);
+  $("#areaStrip").innerHTML = A.map((a,i) => `<div class="warea ${a.unlocked?"unl":"lock"} ${i===bIdx?"boundary":""}" data-i="${i}">
+    ${i===bIdx?'<div class="btag">⛩ boundary: wraps to farm ↩</div>':""}
+    <div class="an">Area ${i+1}${i===0?" · start":""}</div>
+    <h3 contenteditable="true" data-bind="world.areas.${i}.name" data-ph="Name TBD"></h3>
+    <label style="font-size:.82rem;display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" data-aunl="${i}" ${a.unlocked?"checked":""} style="accent-color:var(--green)"> ${a.unlocked?"🔓 Unlocked":"🔒 Locked"}</label>
+    <textarea data-bind="world.areas.${i}.notes" placeholder="Notes: enemies, landmarks, characters…"></textarea></div>`).join("");
+  const nm = i => (A[i] && A[i].name) ? `${i+1} (${A[i].name})` : `${i+1}`;
+  $("#wrapTxt").textContent = bIdx > 0
+    ? `↩ Walking right from area ${nm(bIdx-1)} into locked area ${nm(bIdx)} puts the player back on the LEFT side of area ${nm(0)}.`
+    : (A.length && A.every(a=>a.unlocked) ? "All areas unlocked: the boundary no longer wraps (or decide what happens at the far right)." : "↩ Locked areas wrap the player back to the left side of area 1.");
+  fillBinds("#tab-world");
+}
+$("#areaStrip").addEventListener("change", e => {
+  const i = e.target.dataset.aunl; if(i===undefined) return;
+  S.world.areas[+i].unlocked = e.target.checked; save(); renderWorld();
+});
+$("#areaAdd").addEventListener("click", () => { S.world.areas.push({ id:uid(), name:"", unlocked:false, notes:"" }); save(); renderWorld(); });
+$("#areaDel").addEventListener("click", () => {
+  const A = S.world.areas; if(A.length<=1) return; const a = A[A.length-1];
+  if((a.name||a.notes) && !confirm(`Remove area ${A.length}${a.name?" ("+a.name+")":""} and its notes?`)) return;
+  A.pop(); save(); renderWorld();
+});
+
+/* ---------- anomalies ---------- */
+const ANOM_REPEAT = ["One-time","Repeatable"];
+function renderAnoms(){
+  const A = S.world.anomalies;
+  $("#anomList").innerHTML = A.length ? A.map((a,i) => `<div class="card anom">
+    <div class="shead" style="display:flex;justify-content:space-between;gap:8px"><h3 style="margin:0;flex:1" contenteditable="true" data-bind="world.anomalies.${i}.title" data-ph="Untitled anomaly"></h3>
+      <button class="btn sm" data-andel="${i}">Delete</button></div>
+    <label>Trigger</label><textarea data-bind="world.anomalies.${i}.trigger" placeholder="When does it happen?" style="min-height:48px"></textarea>
+    <label>What the player sees</label><textarea data-bind="world.anomalies.${i}.sees" placeholder="Describe the anomaly" style="min-height:84px"></textarea>
+    <label>Frequency</label><select data-bind="world.anomalies.${i}.repeat">${ANOM_REPEAT.map(o=>`<option>${o}</option>`).join("")}</select>
+    <label>Notes</label><textarea data-bind="world.anomalies.${i}.notes" placeholder="Notes"></textarea></div>`).join("")
+    : '<div class="muted">No anomalies yet.</div>';
+  fillBinds("#anomList");
+}
+$("#anomList").addEventListener("click", e => {
+  const b = e.target.closest("[data-andel]"); if(!b) return;
+  const a = S.world.anomalies[+b.dataset.andel]; if(!a || !confirm(`Delete anomaly "${a.title||"untitled"}"?`)) return;
+  S.world.anomalies.splice(+b.dataset.andel,1); save(); renderAnoms();
+});
+$("#anomAdd").addEventListener("click", () => { S.world.anomalies.push({ id:uid(), title:"", trigger:"", sees:"", repeat:"One-time", notes:"" }); save(); renderAnoms(); });
+
+function renderAll(){ renderStory(); renderAnoms(); renderWorld(); renderLoop(); renderSocial(); renderCombat(); renderMusic(); renderOverview(); renderStudy(); renderBoard("features"); renderBoard("tasks"); renderNotes(); }
+load(); applyTheme(); renderAll();
+const PRINT_MODE = new URLSearchParams(location.search).has("print");
+function openHash(){ const h = location.hash.slice(1); if(h){ const b = document.querySelector(`#nav button[data-tab="${h}"]`); if(b && !b.classList.contains("active")) b.click(); } }
+window.addEventListener("hashchange", openHash); openHash();
+
+/* ---------- print mode: ?print=1 renders every tab, read-only, for PDF export ---------- */
+function enterPrintMode(){
+  document.documentElement.dataset.theme = "light";          // not saved
+  document.body.classList.add("print");
+  const names = {}; document.querySelectorAll("#nav button").forEach(b => names[b.dataset.tab] = b.textContent.trim());
+  const order = [...document.querySelectorAll("#nav button")].map(b => b.dataset.tab);
+  const main = document.querySelector("main");
+  order.forEach(t => { const sec = document.getElementById("tab-"+t); if(!sec) return; main.appendChild(sec);
+    sec.classList.add("active"); const h = document.createElement("h1"); h.className = "p-title"; h.textContent = names[t]; sec.prepend(h); });
+  const sub = document.querySelector(".sub"); if(sub){ const d = document.createElement("div"); d.className = "p-cover"; d.textContent = "Game design dashboard · exported " + new Date().toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"}); sub.after(d); }
+  // read-only text instead of form controls
+  document.querySelectorAll("main input, main textarea, main select").forEach(el => {
+    if(el.type === "file" || el.closest(".addrow") || el.closest(".toolbar")) return;
+    let node;
+    if(el.type === "checkbox"){ node = document.createElement("span"); node.className = "pcheck"; node.textContent = el.checked ? "☑" : "☐"; }
+    else if(el.tagName === "SELECT"){
+      const v = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : "";
+      node = document.createElement("span"); const lvl = /done|decided$/i.test(v) && !/partly/i.test(v) ? 2 : /idea|not started|open|one-time|repeatable/i.test(v) ? 0 : 1;
+      node.className = "pv-st s"+lvl; node.textContent = v;
+    } else {
+      node = document.createElement("div"); const v = (el.value||"").trim();
+      node.className = "pv" + (v ? "" : " empty-v"); node.textContent = v || (el.placeholder && /TBD/.test(el.placeholder) ? "TBD" : "—");
+    }
+    el.replaceWith(node);
+  });
+  document.querySelectorAll('[contenteditable="true"]').forEach(el => el.removeAttribute("contenteditable"));
+  document.querySelectorAll(".item[draggable]").forEach(el => el.removeAttribute("draggable"));
+  // music cells / buttons that carry status become pills
+  document.querySelectorAll("main button.cell-st").forEach(b => { const s = document.createElement("span"); s.className = "pv-st " + [...b.classList].find(c=>/^s\d$/.test(c)); s.textContent = b.textContent; b.replaceWith(s); });
+  // hide "click to edit" hints and "editable" tags
+  document.querySelectorAll(".ed-hint").forEach(el => { if(/^\s*(Click|Tick)/.test(el.textContent) || !el.textContent.replace(/editable/g,"").trim()) el.classList.add("p-hide"); });
+  document.querySelectorAll(".pill.todo-tag").forEach(el => { if(/^editable$/i.test(el.textContent.trim())) el.classList.add("p-hide"); });
+  const nt = document.getElementById("addNote"); if(nt) nt.closest(".card").classList.add("p-hide");
+  if(!S.notes.length){ const nl = document.getElementById("noteList"); if(nl) nl.innerHTML = '<div class="empty" style="grid-column:1/-1">No notes yet.</div>'; }
+  document.querySelectorAll(".col .muted").forEach(el => { if(el.textContent.trim()==="Drop cards here") el.textContent = "—"; });
+}
+if(PRINT_MODE) enterPrintMode();
+</script>
+</body>
+</html>
