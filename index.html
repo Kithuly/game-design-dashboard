@@ -397,6 +397,29 @@ body.print .p-cover{color:#d9d6f5;font-size:.85rem;margin-top:6px}
       <div class="ed-hint" style="margin-top:6px">Click the text to edit. Also shown on the Game loop tab.</div>
     </div>
   </div>
+  <div class="card pitch" style="margin-bottom:16px">
+    <h2>🎥 Visuals &amp; camera</h2>
+    <div contenteditable="true" data-bind="combat.visual"></div>
+    <div class="ed-hint" style="margin-top:6px">Click the text to edit.</div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>Fight camera options</h2>
+    <div contenteditable="true" data-bind="combat.camIntro" style="margin-bottom:6px"></div>
+    <p class="ed-hint" style="margin:0 0 10px">Click any text to edit. Change a status after you test. <span class="pill todo-tag">editable</span></p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))" id="camList"></div>
+    <textarea data-bind="combat.camNotes" placeholder="Test results / final decision… TBD" style="margin-top:12px;min-height:60px"></textarea>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>Enemy attacks</h2>
+    <div contenteditable="true" data-bind="combat.attackIntro" style="margin-bottom:6px"></div>
+    <p class="ed-hint" style="margin:0 0 10px">Click a title or description to edit. <span class="pill todo-tag">editable</span></p>
+    <div class="grid g4" id="atkList"></div>
+  </div>
+  <div class="card secret" style="margin-bottom:16px">
+    <h2>⚠ Risks</h2>
+    <p class="ed-hint" style="margin:-6px 0 10px">Not technical, but worth watching. <span class="pill todo-tag">editable</span></p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))" id="riskList"></div>
+  </div>
   <div class="card" style="margin-bottom:16px">
     <h2>Fighting-style skill tree</h2>
     <p class="ed-hint" style="margin:-6px 0 10px">Click a name or description to edit. Status and notes save automatically. <span class="pill todo-tag">editable</span></p>
@@ -790,6 +813,30 @@ const DEFAULT_STORY = () => ({
   },
 });
 const STYLE_STATUS = ["Idea","Designing","In progress","Done"];
+const CAM_STATUS = ["Recommended","Experiment","Rejected for now","Chosen"];
+const CAM_COLOR = { "Recommended":"var(--green)", "Experiment":"var(--gold)", "Rejected for now":"var(--red)", "Chosen":"var(--blue)" };
+const CAM_CLS = { "Recommended":"s2", "Experiment":"s1", "Rejected for now":"s0", "Chosen":"s2" };
+const DEFAULT_COMBAT_EXTRA = () => ({
+  visual:"Gameplay is drawn on a 3D plane with a fixed top-down camera. Characters and most props are 2D sprites, billboarded to face the camera, with 3D effects and particles on top. The grid stays pure logic (tile coordinates and beats). Rendering is a separate layer that only draws that logic.",
+  camIntro:"How the camera behaves in fights. Option A is the safe default; B is worth a prototype.",
+  cams:[
+    { id:"cam-a", tag:"A", title:"Fixed camera (Crypt of the NecroDancer style)", status:"Recommended", desc:"The easiest route. The camera never rotates, so up on the keyboard is always up on screen, and warning tiles always read the same way." },
+    { id:"cam-b", tag:"B", title:"Corner boss + Q/E facing", status:"Experiment", desc:"The boss moves between the corners of a square arena. The player turns their facing with Q and E while the third-person camera stays locked behind them." },
+    { id:"cam-c", tag:"C", title:"Free-rotating camera + Tab lock-on", status:"Rejected for now", desc:"Input becomes confusing on a beat grid once the camera rotates freely. If it's ever used: rotate in 90° steps and keep input camera-relative (up = away from the camera), and don't move the camera on its own while a boss is spamming attacks." },
+  ],
+  camNotes:"",
+  attackIntro:"Most enemies telegraph: they mark tiles first, and the damage lands on a later beat. Starter code: the Combat/ scripts in unity-starter.zip (TelegraphManager, EnemyShooter, EnemyMelee, BossSpellCaster).",
+  attacks:[
+    { id:"atk-ranged", icon:"🎯", title:"Ranged enemies", desc:"Shoot particles along a line or at specific tiles. Warning tiles show a beat countdown, and the damage is delayed: it lands on the matching beat if the player is still standing on that tile." },
+    { id:"atk-melee", icon:"🐺", title:"Melee enemies & wild beasts", desc:"Rush or shove themselves into the player. They step toward the player on the beat, with a one-beat wind-up tell before the hit." },
+    { id:"atk-boss", icon:"🃏", title:"Bosses: spell cards", desc:"More elaborate spell-card patterns: random attacks that hit many tiles of the board at the same time." },
+    { id:"atk-player", icon:"🔒", title:"The player's rhythm", desc:"The player usually locks on to attack, and moves around when the boss is spamming skills." },
+  ],
+  risks:[
+    { id:"rk-art", title:"Art cost of 3D arenas", desc:"3D fight areas plus pixel sprites plus effects is a lot of art for one person. Keep the arenas simple." },
+    { id:"rk-read", title:"Telegraph readability", desc:"Warning tiles must be easy to read from every camera angle, or bosses will feel unfair. Keep them bright, flat and unlit, with a clear final-beat highlight." },
+  ],
+});
 const DEFAULT_COMBAT = () => ({
   rule:"In combat areas, everything happens on a grid, moving on the beat like Crypt of the NecroDancer. The farm has free movement with no beat or music sync. Few bosses and a handful of important fights; most combat is normal area farming.",
   inspiration:"Touhou Dystopian's character styles:\n• Flandre: tanky, parry\n• Marisa: ranged glass cannon\n• Mokou: berserk, explosive\n• Youmu: fast, balanced",
@@ -868,7 +915,7 @@ const STARTER_FEATURES_V4 = [
 const DEFAULT_WORLD = () => ({
   intro:"Gensokyo is one continuous world with no screen jumps between areas, for the feeling of being lost in Gensokyo.",
   rule:"If the player walks from an unlocked area into a locked one (e.g. area 2 → 3 while 3 is locked), they seamlessly reappear on the LEFT side of area 1 (the farm). This makes Yukari's boundary felt throughout the game and creates the sense that any step could lead somewhere dangerous.",
-  impl:"• One continuous scene, or additive scene loading of neighbouring areas.\n• Camera follow with a confiner.\n• Seamless wrap: teleport the player AND the camera by the same offset, so the screen never visibly jumps.\n• Make the right edge of area 2 and the left edge of area 1 look similar (e.g. matching forest) to hide the seam.",
+  impl:"• One continuous scene, or additive scene loading of neighbouring areas.\n• Camera follow with a confiner.\n• Seamless wrap: teleport the player AND the camera by the same offset, so the screen never visibly jumps.\n• Make the right edge of area 2 and the left edge of area 1 look similar (e.g. matching forest) to hide the seam.\n• Still works with the 3D plane + fixed top-down camera: move the player and the camera by the same offset in the same frame, and hide the jump with matching edges or a short blink/fog.",
   anomIntro:"The player should start to suspect something is off.",
   anomalies:[
     { id:"an-netherworld", title:"Glimpse of the Netherworld", trigger:"After defeating Marisa and unlocking the next fight area: one area transition.", sees:"The transition briefly shows another area: the Netherworld (Hakugyokurou), with the great tree (Saigyou Ayakashi) in the background and Yukari hovering near it.", repeat:"One-time", notes:"On the next transition the anomaly never happens again." },
@@ -935,6 +982,9 @@ function normalizeState(){
   const dc = DEFAULT_COMBAT(), c = (S.combat && typeof S.combat==="object") ? S.combat : {};
   S.combat = { rule: typeof c.rule==="string" ? c.rule : dc.rule, inspiration: typeof c.inspiration==="string" ? c.inspiration : dc.inspiration,
     styles: Array.isArray(c.styles) ? c.styles : dc.styles, combos: Array.isArray(c.combos) ? c.combos : dc.combos };
+  const dx = DEFAULT_COMBAT_EXTRA();
+  ["visual","camIntro","camNotes","attackIntro"].forEach(k => S.combat[k] = typeof c[k]==="string" ? c[k] : dx[k]);
+  ["cams","attacks","risks"].forEach(k => S.combat[k] = Array.isArray(c[k]) ? c[k] : dx[k]);
   const dm = DEFAULT_MUSIC(), m = (S.music && typeof S.music==="object") ? S.music : {};
   S.music = { approach: typeof m.approach==="string" ? m.approach : dm.approach, credits: typeof m.credits==="string" ? m.credits : dm.credits,
     songs: Array.isArray(m.songs) ? m.songs : dm.songs };
@@ -1025,6 +1075,17 @@ function normalizeState(){
     const nq = S.farm.cropQs.findIndex(q => q.id==="cq-negi" && /^Leeks (and|vs) Negi/.test(q.text));
     if(nq>=0) S.farm.cropQs.splice(nq,1);
     S.migrations.v9 = true;
+  }
+  if(!S.migrations.v10){
+    // Visuals & fight camera, telegraphed enemy attacks, risks (new S.combat fields come from DEFAULT_COMBAT_EXTRA).
+    [["sf10-telegraph","rhythm","Telegraphed attacks (warning tiles)","Enemy attacks mark tiles with a warning glow and a beat countdown. Damage lands on the impact beat if the player is still there. Starter code: TelegraphManager + AttackPattern."],
+     ["sf10-melee","rhythm","Melee / beast enemies","Step toward the player on the beat (walls and other enemies block them), wind up for one beat as a tell, then lunge. Starter code: EnemyMelee."],
+     ["sf10-spellcards","rhythm","Boss spell cards","A spell card is a set of attack patterns plus timing. The boss fires random patterns that cover many tiles at once and can hop between arena corners. Starter code: SpellCard + BossSpellCaster."],
+     ["sf10-camera","rhythm","Fight camera decision","A: fixed camera like NecroDancer (recommended). B: boss on arena corners + Q/E facing with a locked third-person camera (experiment). C: free rotation + Tab lock-on (rejected for now)."]]
+      .forEach(([id,pillar,title,desc]) => { if(!S.features.some(f=>f.id===id)) S.features.push({ id, pillar, title, desc, status:"Idea", starter:true }); });
+    // World: the farm wrap still works with this camera (append once, keeps user edits)
+    if(typeof S.world.impl==="string" && !S.world.impl.includes("fixed top-down camera")) S.world.impl = (S.world.impl ? S.world.impl.replace(/\s+$/,"") + "\n" : "") + "• Still works with the 3D plane + fixed top-down camera: move the player and the camera by the same offset in the same frame, and hide the jump with matching edges or a short blink/fog.";
+    S.migrations.v10 = true;
   }
   ["checked"].forEach(k => { if(!S[k] || typeof S[k]!=="object") S[k]={}; });
   ["features","tasks","notes"].forEach(k => { if(!Array.isArray(S[k])) S[k]=[]; });
@@ -1373,8 +1434,19 @@ function renderCombat(){
     <td><input type="text" data-bind="combat.combos.${i}.cost" placeholder="TBD"></td>
     <td><button class="btn sm" data-cbdel="${i}" title="Delete row">✕</button></td></tr>`).join("")
     : '<tr><td colspan="5" class="muted">No combos yet.</td></tr>';
+  $("#camList").innerHTML = C.cams.map((cm,i) => `<div class="card style-card" style="--c:${CAM_COLOR[cm.status]||"var(--blue)"}">
+    <div class="shead"><h3 style="margin:0"><span class="pill" style="margin-right:6px">${esc(cm.tag||String.fromCharCode(65+i))}</span><span contenteditable="true" data-bind="combat.cams.${i}.title"></span></h3>
+      <select class="cell-st ${CAM_CLS[cm.status]||"s0"}" data-cam="${i}" data-bind="combat.cams.${i}.status">${CAM_STATUS.map(o=>`<option${o===cm.status?" selected":""}>${o}</option>`).join("")}</select></div>
+    <div contenteditable="true" data-bind="combat.cams.${i}.desc" style="font-size:.92rem;margin-top:6px"></div></div>`).join("");
+  $("#atkList").innerHTML = C.attacks.map((a,i) => `<div class="card style-card" style="--c:var(--red)">
+    <h3 style="margin:0 0 6px">${esc(a.icon||"")} <span contenteditable="true" data-bind="combat.attacks.${i}.title"></span></h3>
+    <div contenteditable="true" data-bind="combat.attacks.${i}.desc" style="font-size:.92rem"></div></div>`).join("");
+  $("#riskList").innerHTML = C.risks.map((r,i) => `<div class="card" style="box-shadow:none">
+    <h3 style="margin:0 0 6px" contenteditable="true" data-bind="combat.risks.${i}.title"></h3>
+    <div contenteditable="true" data-bind="combat.risks.${i}.desc" style="font-size:.92rem"></div></div>`).join("");
   fillBinds("#tab-combat");
 }
+$("#camList").addEventListener("change", e => { if(e.target.dataset.cam===undefined) return; S.combat.cams[+e.target.dataset.cam].status = e.target.value; save(); renderCombat(); });
 $("#styleList").addEventListener("click", e => {
   const b = e.target.closest("[data-sdel]"); if(!b) return;
   const st = S.combat.styles[+b.dataset.sdel]; if(!st || !confirm(`Delete style "${st.name}"?`)) return;
@@ -1633,7 +1705,7 @@ function enterPrintMode(){
     if(el.type === "checkbox"){ node = document.createElement("span"); node.className = "pcheck"; node.textContent = el.checked ? "☑" : "☐"; }
     else if(el.tagName === "SELECT"){
       const v = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : "";
-      node = document.createElement("span"); const lvl = /done|decided$/i.test(v) && !/partly/i.test(v) ? 2 : /idea|not started|open|one-time|repeatable/i.test(v) ? 0 : 1;
+      node = document.createElement("span"); const lvl = (/done|decided$|^recommended$|^chosen$/i.test(v) && !/partly/i.test(v)) ? 2 : /idea|not started|open|one-time|repeatable|rejected/i.test(v) ? 0 : 1;
       node.className = "pv-st s"+lvl; node.textContent = v;
     } else {
       node = document.createElement("div"); const v = (el.value||"").trim();
