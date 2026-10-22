@@ -498,6 +498,11 @@ body.print .p-cover{color:#d9d6f5;font-size:.85rem;margin-top:6px}
       <textarea data-bind="farm.hungerNotes" placeholder="Drain rate, food values, what happens at empty… TBD" style="margin-top:10px"></textarea>
     </div>
   </div>
+  <div class="card" style="--c:var(--gold)">
+    <h2>🍶 Sake barrels</h2>
+    <div contenteditable="true" data-bind="farm.sake"></div>
+    <div class="ed-hint" style="margin-top:6px">Click the text to edit.</div>
+  </div>
 </section>
 
 <!-- WORLD -->
@@ -872,6 +877,12 @@ const DEFAULT_WORLD = () => ({
   areas:[1,2,3,4,5,6,7,8].map(n => ({ id:"ar-"+n, name: n===1 ? "The farm" : "", unlocked: n===1, notes:"" })),
 });
 const CROP_SEASONS = [["Spring","🌸","var(--pink)"],["Summer","☀","var(--gold)"],["Autumn","🍁","var(--red)"],["Winter","❄","var(--blue)"]];
+const CROP_NOTES = {
+  "Rice":"Sake: +4 days fermenting in a barrel (barrels take farm space). One of the simplest foods against hunger.",
+  "Kabocha":"For cooking meals (intentionally different from the autumn Pumpkin).",
+  "Pumpkin":"Halloween-style pumpkin for sweets and pie (intentionally different from Kabocha).",
+};
+const SAKE_TEXT = "Rice can be brewed into sake, but it takes 4 more days fermenting in a barrel, and barrels occupy a reasonable amount of farm space. So the rice-to-sake profit (e.g. selling to Suika) still costs work and space.";
 const DEFAULT_FARM = () => ({
   intro:"Crops are seasonal: each of the four 28-day seasons in the 112-day year has its own crop list. Harvests can be sold, cooked or gifted, and rice can also be brewed into sake. Traveling merchants turn this into a trade economy, winter adds big orders, and instead of a stamina bar there's a hunger meter.",
   crops:[
@@ -879,10 +890,9 @@ const DEFAULT_FARM = () => ({
     ["Summer","Rice",4,"Sell, Cook, Sake"],["Summer","Strawberries",6,"Sell, Cook, Gift"],["Summer","Kabocha",9,"Sell, Cook, Gift"],["Summer","Watermelon",9,"Sell, Cook, Gift"],["Summer","Edamame",6,"Sell, Cook, Gift"],
     ["Autumn","Rice",4,"Sell, Cook, Sake"],["Autumn","Sweet Potato",8,"Sell, Cook, Gift"],["Autumn","Pumpkin",9,"Sell, Cook, Gift"],["Autumn","Grapes",8,"Sell, Cook, Gift"],["Autumn","Leeks",6,"Sell, Cook, Gift"],
     ["Winter","Carrots",5,"Sell, Cook, Gift"],["Winter","Radishes (Daikon)",6,"Sell, Cook, Gift"],["Winter","Cabbage",8,"Sell, Cook, Gift"],["Winter","Negi",6,"Sell, Cook, Gift"],["Winter","Leeks",6,"Sell, Cook, Gift"],
-  ].map(([season,name,days,uses],i) => ({ id:"cr-"+i, season, name, days:String(days), uses, value:"", notes:"" })),
+  ].map(([season,name,days,uses],i) => ({ id:"cr-"+i, season, name, days:String(days), uses, value:"", notes:CROP_NOTES[name]||"" })),
   cropQs:[
-    { id:"cq-kabocha", text:"Kabocha (summer) and Pumpkin (autumn) are near-duplicates (kabocha is a Japanese pumpkin). Differentiate them (different uses, recipes or buyers) or merge into one crop?", done:false },
-    { id:"cq-negi", text:"Leeks and Negi are near-duplicates (negi is often translated as \"leek\"), and both are in winter. Differentiate or merge?", done:false },
+    { id:"cq-negi", text:"Leeks vs Negi: similar crops (negi is often translated as \"leek\"), and both grow in winter. Worth giving each its own use or recipe?", done:false },
     { id:"cq-value", text:"Sell price / value per crop (and per merchant) is still TBD.", done:false },
   ],
   tradeIntro:"Traveling merchants bring foraged or premium goods and fruits, and are interested in buying sustainable farmed staples. Each merchant values goods differently, so trade becomes a value system players can learn and exploit for maximum profit.",
@@ -892,7 +902,8 @@ const DEFAULT_FARM = () => ({
   ],
   winter:"During winter, some characters offer very good pay if the player fills a big order for them to use through the winter. These payouts usually go to big farm improvements or combat artifacts.",
   winterNotes:"",
-  hunger:"No Stardew-style stamina. Instead the player has a hunger meter, similar to Don't Starve, that runs down over time and is refilled by eating. This ties into cooking.",
+  hunger:"No Stardew-style stamina. Instead the player has a hunger meter, similar to Don't Starve, that runs down over time and is refilled by eating. This ties into cooking. Rice is one of the simplest foods to stave off hunger.",
+  sake:SAKE_TEXT,
   hungerNotes:"",
 });
 const DEFAULT_VOICE_IMPL = "• Play a short blip clip every N letters in DialogueManager's typewriter (skip spaces and punctuation).\n• Per speaker (from the #speaker tag): pitch, speed (letters per blip), and a slight random pitch variation (e.g. ±0.05) so it doesn't sound robotic.\n• One VoiceProfile ScriptableObject per character (clips, pitch, speed, variation); use a single AudioSource and AudioSource.pitch.\n• Skipping or finishing the line instantly stops the blips.";
@@ -939,7 +950,7 @@ function normalizeState(){
   S.social.voices = Array.isArray(So.voices) ? So.voices : ds.voices;
   const df = DEFAULT_FARM(), Fm = (S.farm && typeof S.farm==="object") ? S.farm : {};
   S.farm = {};
-  ["intro","tradeIntro","winter","winterNotes","hunger","hungerNotes"].forEach(k => S.farm[k] = typeof Fm[k]==="string" ? Fm[k] : df[k]);
+  ["intro","tradeIntro","winter","winterNotes","hunger","hungerNotes","sake"].forEach(k => S.farm[k] = typeof Fm[k]==="string" ? Fm[k] : df[k]);
   ["crops","cropQs","merchants"].forEach(k => S.farm[k] = Array.isArray(Fm[k]) ? Fm[k] : df[k]);
   const dw = DEFAULT_WORLD(), Wd = (S.world && typeof S.world==="object") ? S.world : {};
   S.world = { intro: typeof Wd.intro==="string" ? Wd.intro : dw.intro, rule: typeof Wd.rule==="string" ? Wd.rule : dw.rule,
@@ -998,6 +1009,16 @@ function normalizeState(){
     if(blank(v1)) Object.assign(v1, { character:"Sakuya", sells:"Cherries, Apples (Scarlet Devil Mansion). Buys rice and meat." });
     if(blank(v2)) Object.assign(v2, { character:"Suika", sells:"Special berries, Peaches (foraged). Buys sake and watermelons." });
     S.migrations.v7 = true;
+  }
+  if(!S.migrations.v8){
+    // Sake barrels; Kabocha vs Pumpkin are intentionally different. Only touches untouched defaults.
+    const qs = S.farm.cropQs, kq = qs.findIndex(q => q.id==="cq-kabocha" && /near-duplicates/.test(q.text));
+    if(kq>=0) qs.splice(kq,1);
+    qs.forEach(q => { if(q.id==="cq-negi" && q.text==="Leeks and Negi are near-duplicates (negi is often translated as \"leek\"), and both are in winter. Differentiate or merge?") q.text = "Leeks vs Negi: similar crops (negi is often translated as \"leek\"), and both grow in winter. Worth giving each its own use or recipe?"; });
+    S.farm.crops.forEach(c => { if(!c.notes && CROP_NOTES[c.name]) c.notes = CROP_NOTES[c.name]; });
+    if(S.farm.hunger === "No Stardew-style stamina. Instead the player has a hunger meter, similar to Don't Starve, that runs down over time and is refilled by eating. This ties into cooking.") S.farm.hunger = "No Stardew-style stamina. Instead the player has a hunger meter, similar to Don't Starve, that runs down over time and is refilled by eating. This ties into cooking. Rice is one of the simplest foods to stave off hunger.";
+    if(!S.features.some(f=>f.id==="sf8-sake")) S.features.push({ id:"sf8-sake", pillar:"farming", title:"Sake barrels (rice → sake)", desc:"Place a barrel, load rice, wait 4 more days of fermenting, collect sake. Barrels occupy a reasonable amount of farm space, so sake profit costs work and space.", status:"Idea", starter:true });
+    S.migrations.v8 = true;
   }
   ["checked"].forEach(k => { if(!S[k] || typeof S[k]!=="object") S[k]={}; });
   ["features","tasks","notes"].forEach(k => { if(!Array.isArray(S[k])) S[k]=[]; });
