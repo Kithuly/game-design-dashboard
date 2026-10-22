@@ -135,6 +135,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .qans{font-size:.85rem;margin-top:3px;padding:4px 8px;border-left:3px solid var(--green);background:rgba(76,154,106,.08);border-radius:0 8px 8px 0}
 .qans.partial{border-left-color:var(--gold);background:rgba(232,176,75,.1)}
 .season-pill{font-weight:700}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.chip{font:inherit;font-size:.82rem;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:4px 11px;cursor:pointer}
+.chip:hover{border-color:var(--c,var(--red))}
+.chip.on{background:var(--c,var(--red));border-color:var(--c,var(--red));color:#fff}
+.tbl tr.ssn td:first-child{border-left:4px solid var(--c)}
+.tbl select{max-width:100%}
+.subh{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:16px 0 4px}
 .cycle{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;justify-content:center}
 .cstep{flex:1 1 180px;max-width:260px;background:var(--bg);border:2px solid var(--line);border-top:5px solid var(--c);border-radius:16px;padding:12px;position:relative;margin:6px 0}
 .cstep .cn{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font-weight:700;align-items:center;justify-content:center;font-size:.85rem;margin-right:6px}
@@ -234,6 +241,7 @@ body.print .p-cover{color:#d9d6f5;font-size:.85rem;margin-top:6px}
       <button data-tab="story">📖 Story</button>
       <button data-tab="combat">⚔ Combat</button>
       <button data-tab="loop">🔁 Game loop</button>
+      <button data-tab="farming">🌾 Farming &amp; economy</button>
       <button data-tab="world">🗺 World map</button>
       <button data-tab="social">💝 Social</button>
       <button data-tab="music">🎵 Music</button>
@@ -454,6 +462,44 @@ body.print .p-cover{color:#d9d6f5;font-size:.85rem;margin-top:6px}
   </div>
 </section>
 
+<!-- FARMING & ECONOMY -->
+<section class="tab" id="tab-farming">
+  <div class="card pitch" style="margin-bottom:16px">
+    <h2>Farming &amp; economy</h2>
+    <div contenteditable="true" data-bind="farm.intro"></div>
+    <div class="ed-hint" style="margin-top:6px">Click the text to edit.</div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>Crops by season</h2>
+    <p class="ed-hint" style="margin:-6px 0 10px">Filter by season with the chips. Every field is editable; sell value is still TBD. <span class="pill todo-tag">editable</span></p>
+    <div class="chips" id="cropFilter"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th style="width:130px">Season</th><th>Crop</th><th style="width:100px">Growth days</th><th>Uses</th><th style="width:120px">Sell value</th><th>Notes</th><th style="width:44px"></th></tr></thead><tbody id="cropBody"></tbody></table></div>
+    <div style="margin-top:10px"><button class="btn sm" id="cropAdd">+ Add crop</button></div>
+    <div class="subh">Open questions (not decided)</div>
+    <ul class="elist" id="cropQList"></ul>
+    <div class="addrow"><input type="text" id="cropQNew" placeholder="Add an open question about crops…"><button class="btn primary" id="cropQAdd">Add</button></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>Traveling merchant trade</h2>
+    <div contenteditable="true" data-bind="farm.tradeIntro" style="margin-bottom:10px"></div>
+    <p class="ed-hint" style="margin:0 0 10px">What each merchant brings and what they want in return. Prices are TBD. <span class="pill todo-tag">editable</span></p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th style="width:150px">Merchant</th><th>Brings (foraged / premium)</th><th>Wants (farmed staples)</th><th>Notes</th><th style="width:44px"></th></tr></thead><tbody id="merchBody"></tbody></table></div>
+    <div style="margin-top:10px"><button class="btn sm" id="merchAdd">+ Add merchant</button></div>
+  </div>
+  <div class="story-grid">
+    <div class="card secret">
+      <h2>Winter big orders</h2>
+      <div contenteditable="true" data-bind="farm.winter"></div>
+      <textarea data-bind="farm.winterNotes" placeholder="Who orders what, quantities, deadlines, rewards… TBD" style="margin-top:10px"></textarea>
+    </div>
+    <div class="card">
+      <h2>Hunger meter (no stamina)</h2>
+      <div contenteditable="true" data-bind="farm.hunger"></div>
+      <textarea data-bind="farm.hungerNotes" placeholder="Drain rate, food values, what happens at empty… TBD" style="margin-top:10px"></textarea>
+    </div>
+  </div>
+</section>
+
 <!-- WORLD -->
 <section class="tab" id="tab-world">
   <div class="card pitch" style="margin-bottom:16px">
@@ -506,6 +552,16 @@ body.print .p-cover{color:#d9d6f5;font-size:.85rem;margin-top:6px}
     <p class="ed-hint" style="margin:-6px 0 10px">Characters who pass through the village selling trinkets and food. <span class="pill todo-tag">editable</span></p>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th style="width:170px">Character</th><th>Sells</th><th>Schedule</th><th style="width:44px"></th></tr></thead><tbody id="venBody"></tbody></table></div>
     <div style="margin-top:10px"><button class="btn sm" id="venAdd">+ Add vendor</button></div>
+    <div class="notice" style="margin:12px 0 0" contenteditable="true" data-bind="social.tradeNote"></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2>Character voice blips</h2>
+    <div contenteditable="true" data-bind="social.voiceIntro" style="margin-bottom:10px"></div>
+    <p class="ed-hint" style="margin:0 0 10px">Pitch and speed per character are yours to set; blank fields show TBD. <span class="pill todo-tag">editable</span></p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th style="width:140px">Character</th><th>Sounds</th><th style="width:110px">Pitch</th><th style="width:110px">Speed</th><th>Personality / feel</th><th style="width:44px"></th></tr></thead><tbody id="voiceBody"></tbody></table></div>
+    <div style="margin-top:10px"><button class="btn sm" id="voiceAdd">+ Add character</button></div>
+    <div class="subh">Implementation notes</div>
+    <textarea data-bind="social.voiceImpl" style="min-height:120px"></textarea>
   </div>
 </section>
 
@@ -784,6 +840,10 @@ const DEFAULT_SOCIAL = () => ({
   intro:"Inspired by Hades and Stardew Valley, and explicitly not a dating sim. Giving gifts raises a character's affinity, and affinity milestones unlock passives that help on the quest.",
   affinity:["Marisa","Reimu","Sakuya","Cirno","Yukari"].map(n => ({ id:"af-"+n.toLowerCase(), character:n, liked:"", disliked:"", passives:"" })),
   vendors:[ { id:"vn-1", character:"", sells:"", schedule:"" }, { id:"vn-2", character:"", sells:"", schedule:"" } ],
+  tradeNote:"🧺 Traveling merchants also trade: they bring foraged or premium goods and want farmed staples. See Farming & economy → Traveling merchant trade.",
+  voiceIntro:"While dialogue text types out, each character \"talks\" with short digitized sounds like \"Ah\", \"mmm\", \"Uhum\", \"Eh\" and \"Oooh\". Each character gets their own pitch and speed, chosen to resemble their personality.",
+  voices:["Marisa","Reimu","Sakuya","Suika","Cirno","Yukari"].map(n => ({ id:"vo-"+n.toLowerCase(), character:n, sounds:"", pitch:"", speed:"", feel:"" })),
+  voiceImpl:DEFAULT_VOICE_IMPL,
 });
 const STARTER_FEATURES_V4 = [
   ["sf4-daynight","farming","Day/night & daily schedule","Short days: wake up, farm, go out, rest. Clock and end-of-day handling."],
@@ -811,6 +871,31 @@ const DEFAULT_WORLD = () => ({
   ],
   areas:[1,2,3,4,5,6,7,8].map(n => ({ id:"ar-"+n, name: n===1 ? "The farm" : "", unlocked: n===1, notes:"" })),
 });
+const CROP_SEASONS = [["Spring","🌸","var(--pink)"],["Summer","☀","var(--gold)"],["Autumn","🍁","var(--red)"],["Winter","❄","var(--blue)"]];
+const DEFAULT_FARM = () => ({
+  intro:"Crops are seasonal: each of the four 28-day seasons in the 112-day year has its own crop list. Harvests can be sold, cooked or gifted, and rice can also be brewed into sake. Traveling merchants turn this into a trade economy, winter adds big orders, and instead of a stamina bar there's a hunger meter.",
+  crops:[
+    ["Spring","Rice",4,"Sell, Cook, Sake"],["Spring","Bamboo shoots",5,"Sell, Cook, Gift"],["Spring","Strawberries",6,"Sell, Cook, Gift"],["Spring","Nanohana",6,"Sell, Cook, Gift"],["Spring","Sayaendo (peas)",7,"Sell, Cook, Gift"],
+    ["Summer","Rice",4,"Sell, Cook, Sake"],["Summer","Strawberries",6,"Sell, Cook, Gift"],["Summer","Kabocha",9,"Sell, Cook, Gift"],["Summer","Watermelon",9,"Sell, Cook, Gift"],["Summer","Edamame",6,"Sell, Cook, Gift"],
+    ["Autumn","Rice",4,"Sell, Cook, Sake"],["Autumn","Sweet Potato",8,"Sell, Cook, Gift"],["Autumn","Pumpkin",9,"Sell, Cook, Gift"],["Autumn","Grapes",8,"Sell, Cook, Gift"],["Autumn","Leeks",6,"Sell, Cook, Gift"],
+    ["Winter","Carrots",5,"Sell, Cook, Gift"],["Winter","Radishes (Daikon)",6,"Sell, Cook, Gift"],["Winter","Cabbage",8,"Sell, Cook, Gift"],["Winter","Negi",6,"Sell, Cook, Gift"],["Winter","Leeks",6,"Sell, Cook, Gift"],
+  ].map(([season,name,days,uses],i) => ({ id:"cr-"+i, season, name, days:String(days), uses, value:"", notes:"" })),
+  cropQs:[
+    { id:"cq-kabocha", text:"Kabocha (summer) and Pumpkin (autumn) are near-duplicates (kabocha is a Japanese pumpkin). Differentiate them (different uses, recipes or buyers) or merge into one crop?", done:false },
+    { id:"cq-negi", text:"Leeks and Negi are near-duplicates (negi is often translated as \"leek\"), and both are in winter. Differentiate or merge?", done:false },
+    { id:"cq-value", text:"Sell price / value per crop (and per merchant) is still TBD.", done:false },
+  ],
+  tradeIntro:"Traveling merchants bring foraged or premium goods and fruits, and are interested in buying sustainable farmed staples. Each merchant values goods differently, so trade becomes a value system players can learn and exploit for maximum profit.",
+  merchants:[
+    { id:"mc-sakuya", character:"Sakuya", brings:"Cherries, Apples (from the Scarlet Devil Mansion)", wants:"Rice, Meat", notes:"" },
+    { id:"mc-suika", character:"Suika", brings:"Special berries, Peaches (forager)", wants:"Sake, Watermelons", notes:"" },
+  ],
+  winter:"During winter, some characters offer very good pay if the player fills a big order for them to use through the winter. These payouts usually go to big farm improvements or combat artifacts.",
+  winterNotes:"",
+  hunger:"No Stardew-style stamina. Instead the player has a hunger meter, similar to Don't Starve, that runs down over time and is refilled by eating. This ties into cooking.",
+  hungerNotes:"",
+});
+const DEFAULT_VOICE_IMPL = "• Play a short blip clip every N letters in DialogueManager's typewriter (skip spaces and punctuation).\n• Per speaker (from the #speaker tag): pitch, speed (letters per blip), and a slight random pitch variation (e.g. ±0.05) so it doesn't sound robotic.\n• One VoiceProfile ScriptableObject per character (clips, pitch, speed, variation); use a single AudioSource and AudioSource.pitch.\n• Skipping or finishing the line instantly stops the blips.";
 const STARTER_FEATURES_V5 = [
   ["sf5-training","rhythm","Training area & dummy","A dummy or training enemy on/near the farm where the beat is more evident. Practice and latency calibration."],
   ["sf5-freemove","farming","Free movement on farm (no beat)","Free movement on the farm with no beat or music sync; switch to grid-on-beat in combat areas."],
@@ -850,6 +935,12 @@ function normalizeState(){
   const ds = DEFAULT_SOCIAL(), So = (S.social && typeof S.social==="object") ? S.social : {};
   S.social = { intro: typeof So.intro==="string" ? So.intro : ds.intro,
     affinity: Array.isArray(So.affinity) ? So.affinity : ds.affinity, vendors: Array.isArray(So.vendors) ? So.vendors : ds.vendors };
+  ["tradeNote","voiceIntro","voiceImpl"].forEach(k => S.social[k] = typeof So[k]==="string" ? So[k] : ds[k]);
+  S.social.voices = Array.isArray(So.voices) ? So.voices : ds.voices;
+  const df = DEFAULT_FARM(), Fm = (S.farm && typeof S.farm==="object") ? S.farm : {};
+  S.farm = {};
+  ["intro","tradeIntro","winter","winterNotes","hunger","hungerNotes"].forEach(k => S.farm[k] = typeof Fm[k]==="string" ? Fm[k] : df[k]);
+  ["crops","cropQs","merchants"].forEach(k => S.farm[k] = Array.isArray(Fm[k]) ? Fm[k] : df[k]);
   const dw = DEFAULT_WORLD(), Wd = (S.world && typeof S.world==="object") ? S.world : {};
   S.world = { intro: typeof Wd.intro==="string" ? Wd.intro : dw.intro, rule: typeof Wd.rule==="string" ? Wd.rule : dw.rule,
     impl: typeof Wd.impl==="string" ? Wd.impl : dw.impl, areas: Array.isArray(Wd.areas) ? Wd.areas : dw.areas,
@@ -892,6 +983,21 @@ function normalizeState(){
       .forEach(([id,pillar,title,desc]) => { if(!S.features.some(f=>f.id===id)) S.features.push({ id, pillar, title, desc, status:"Idea", starter:true }); });
     if(!S.story.questions.some(q=>q.id==="q-movement")) S.story.questions.push({ id:"q-movement", text:"Player movement: grid hops everywhere, or free Stardew-style running on the farm?", done:false, partial:false });
     S.migrations.v6 = true;
+  }
+  if(!S.migrations.v7){
+    // Crops, merchant trade, winter orders, hunger, voice blips. New S.farm / social fields come from the defaults above.
+    [["sf7-crops","farming","Crop growth system (seasonal crops)","Crop data (season, growth days, uses) as ScriptableObjects. Plant, water, grow by days; crops only grow in their season. 20 crops planned across four seasons (see Farming & economy)."],
+     ["sf7-trade","farming","Merchant trade & pricing","Each traveling merchant brings foraged/premium goods and wants farmed staples, with their own price table. Price differences are meant to be exploitable for profit."],
+     ["sf7-winter-orders","farming","Winter big orders","In winter, some characters place big orders with very good pay. Payouts fund big farm improvements or combat artifacts."],
+     ["sf7-hunger","farming","Hunger meter","No stamina. A Don't Starve-style hunger meter that drains over time; eating (and cooking) refills it."],
+     ["sf7-voice","social","Character voice blips","Short digitized talking sounds (Ah, mmm, Uhum, Eh, Oooh) during dialogue. Implementation: in DialogueManager's typewriter, play a short clip every N letters, with per-speaker pitch and speed plus slight random pitch variation."]]
+      .forEach(([id,pillar,title,desc]) => { if(!S.features.some(f=>f.id===id)) S.features.push({ id, pillar, title, desc, status:"Idea", starter:true }); });
+    // Fill the two blank starter vendor rows with the first merchants (only if still untouched)
+    const blank = v => v && !v.character && !v.sells && !v.schedule;
+    const v1 = S.social.vendors.find(v=>v.id==="vn-1"), v2 = S.social.vendors.find(v=>v.id==="vn-2");
+    if(blank(v1)) Object.assign(v1, { character:"Sakuya", sells:"Cherries, Apples (Scarlet Devil Mansion). Buys rice and meat." });
+    if(blank(v2)) Object.assign(v2, { character:"Suika", sells:"Special berries, Peaches (foraged). Buys sake and watermelons." });
+    S.migrations.v7 = true;
   }
   ["checked"].forEach(k => { if(!S[k] || typeof S[k]!=="object") S[k]={}; });
   ["features","tasks","notes"].forEach(k => { if(!Array.isArray(S[k])) S[k]=[]; });
@@ -1372,12 +1478,61 @@ function renderSocial(){
     <td><input type="text" data-bind="social.vendors.${i}.schedule" placeholder="TBD (e.g. every 3rd day)"></td>
     <td><button class="btn sm" data-vndel="${i}" title="Delete row">✕</button></td></tr>`).join("")
     : '<tr><td colspan="4" class="muted">No vendors yet.</td></tr>';
+  $("#voiceBody").innerHTML = So.voices.length ? So.voices.map((r,i) => `<tr>
+    <td><input type="text" data-bind="social.voices.${i}.character" placeholder="Character"></td>
+    <td><input type="text" data-bind="social.voices.${i}.sounds" placeholder="TBD (e.g. Ah, Eh, Uhum)"></td>
+    <td><input type="text" data-bind="social.voices.${i}.pitch" placeholder="TBD"></td>
+    <td><input type="text" data-bind="social.voices.${i}.speed" placeholder="TBD"></td>
+    <td><input type="text" data-bind="social.voices.${i}.feel" placeholder="TBD"></td>
+    <td><button class="btn sm" data-vodel="${i}" title="Delete row">✕</button></td></tr>`).join("")
+    : '<tr><td colspan="6" class="muted">No voices yet.</td></tr>';
   fillBinds("#tab-social");
 }
 $("#affBody").addEventListener("click", e => { const b = e.target.closest("[data-afdel]"); if(!b || !confirm("Delete this row?")) return; S.social.affinity.splice(+b.dataset.afdel,1); save(); renderSocial(); });
 $("#venBody").addEventListener("click", e => { const b = e.target.closest("[data-vndel]"); if(!b || !confirm("Delete this row?")) return; S.social.vendors.splice(+b.dataset.vndel,1); save(); renderSocial(); });
 $("#affAdd").addEventListener("click", () => { S.social.affinity.push({ id:uid(), character:"", liked:"", disliked:"", passives:"" }); save(); renderSocial(); });
+$("#voiceBody").addEventListener("click", e => { const b = e.target.closest("[data-vodel]"); if(!b || !confirm("Delete this row?")) return; S.social.voices.splice(+b.dataset.vodel,1); save(); renderSocial(); });
+$("#voiceAdd").addEventListener("click", () => { S.social.voices.push({ id:uid(), character:"", sounds:"", pitch:"", speed:"", feel:"" }); save(); renderSocial(); });
 $("#venAdd").addEventListener("click", () => { S.social.vendors.push({ id:uid(), character:"", sells:"", schedule:"" }); save(); renderSocial(); });
+
+/* ---------- farming & economy ---------- */
+let cropFilter = "all";
+function renderFarm(){
+  const F = S.farm, seasonOf = n => CROP_SEASONS.find(s => s[0]===n);
+  const count = n => F.crops.filter(c => n==="all" || c.season===n).length;
+  $("#cropFilter").innerHTML = [["all","All","var(--green)"], ...CROP_SEASONS.map(([n,ic,c]) => [n, ic+" "+n, c])]
+    .map(([k,label,c]) => `<button class="chip ${cropFilter===k?"on":""}" data-cf="${esc(k)}" style="--c:${c}">${esc(label)} <span style="opacity:.75">${count(k)}</span></button>`).join("");
+  const rows = F.crops.map((c,i) => [c,i]).filter(([c]) => cropFilter==="all" || c.season===cropFilter);
+  $("#cropBody").innerHTML = rows.length ? rows.map(([c,i]) => { const sn = seasonOf(c.season); return `<tr class="ssn" style="--c:${sn?sn[2]:"var(--line)"}">
+    <td><select data-bind="farm.crops.${i}.season">${CROP_SEASONS.map(([n,ic]) => `<option value="${n}">${ic} ${n}</option>`).join("")}</select></td>
+    <td><input type="text" data-bind="farm.crops.${i}.name" placeholder="Crop"></td>
+    <td><input type="text" data-bind="farm.crops.${i}.days" placeholder="TBD"></td>
+    <td><input type="text" data-bind="farm.crops.${i}.uses" placeholder="Sell, Cook, Gift"></td>
+    <td><input type="text" data-bind="farm.crops.${i}.value" placeholder="TBD"></td>
+    <td><input type="text" data-bind="farm.crops.${i}.notes" placeholder="—"></td>
+    <td><button class="btn sm" data-crdel="${i}" title="Delete row">✕</button></td></tr>`; }).join("")
+    : '<tr><td colspan="7" class="muted">No crops for this season yet.</td></tr>';
+  simpleList("#cropQList", F.cropQs, "question");
+  $("#merchBody").innerHTML = F.merchants.length ? F.merchants.map((m,i) => `<tr>
+    <td><input type="text" data-bind="farm.merchants.${i}.character" placeholder="Character"></td>
+    <td><input type="text" data-bind="farm.merchants.${i}.brings" placeholder="TBD"></td>
+    <td><input type="text" data-bind="farm.merchants.${i}.wants" placeholder="TBD"></td>
+    <td><input type="text" data-bind="farm.merchants.${i}.notes" placeholder="—"></td>
+    <td><button class="btn sm" data-mcdel="${i}" title="Delete row">✕</button></td></tr>`).join("")
+    : '<tr><td colspan="5" class="muted">No merchants yet.</td></tr>';
+  fillBinds("#tab-farming");
+}
+$("#cropFilter").addEventListener("click", e => { const b = e.target.closest("[data-cf]"); if(!b) return; cropFilter = b.dataset.cf; renderFarm(); });
+$("#cropBody").addEventListener("change", e => { if(e.target.tagName==="SELECT"){ save(); renderFarm(); } });
+$("#cropBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-crdel]"); if(!b) return;
+  const c = S.farm.crops[+b.dataset.crdel]; if(!c || !confirm(`Delete ${c.name||"this crop"} (${c.season})?`)) return;
+  S.farm.crops.splice(+b.dataset.crdel,1); save(); renderFarm();
+});
+$("#cropAdd").addEventListener("click", () => { S.farm.crops.push({ id:uid(), season: cropFilter==="all" ? "Spring" : cropFilter, name:"", days:"", uses:"Sell, Cook, Gift", value:"", notes:"" }); save(); renderFarm(); });
+wireList("#cropQList", () => S.farm.cropQs, "question", renderFarm, "#cropQNew", "#cropQAdd");
+$("#merchBody").addEventListener("click", e => { const b = e.target.closest("[data-mcdel]"); if(!b || !confirm("Delete this merchant?")) return; S.farm.merchants.splice(+b.dataset.mcdel,1); save(); renderFarm(); });
+$("#merchAdd").addEventListener("click", () => { S.farm.merchants.push({ id:uid(), character:"", brings:"", wants:"", notes:"" }); save(); renderFarm(); });
 
 /* ---------- world map ---------- */
 function renderWorld(){
@@ -1428,7 +1583,7 @@ $("#anomList").addEventListener("click", e => {
 });
 $("#anomAdd").addEventListener("click", () => { S.world.anomalies.push({ id:uid(), title:"", trigger:"", sees:"", repeat:"One-time", notes:"" }); save(); renderAnoms(); });
 
-function renderAll(){ renderStory(); renderAnoms(); renderWorld(); renderLoop(); renderSocial(); renderCombat(); renderMusic(); renderOverview(); renderStudy(); renderBoard("features"); renderBoard("tasks"); renderNotes(); }
+function renderAll(){ renderStory(); renderAnoms(); renderWorld(); renderLoop(); renderFarm(); renderSocial(); renderCombat(); renderMusic(); renderOverview(); renderStudy(); renderBoard("features"); renderBoard("tasks"); renderNotes(); }
 load(); applyTheme(); renderAll();
 const PRINT_MODE = new URLSearchParams(location.search).has("print");
 function openHash(){ const h = location.hash.slice(1); if(h){ const b = document.querySelector(`#nav button[data-tab="${h}"]`); if(b && !b.classList.contains("active")) b.click(); } }
