@@ -889,10 +889,9 @@ const DEFAULT_FARM = () => ({
     ["Spring","Rice",4,"Sell, Cook, Sake"],["Spring","Bamboo shoots",5,"Sell, Cook, Gift"],["Spring","Strawberries",6,"Sell, Cook, Gift"],["Spring","Nanohana",6,"Sell, Cook, Gift"],["Spring","Sayaendo (peas)",7,"Sell, Cook, Gift"],
     ["Summer","Rice",4,"Sell, Cook, Sake"],["Summer","Strawberries",6,"Sell, Cook, Gift"],["Summer","Kabocha",9,"Sell, Cook, Gift"],["Summer","Watermelon",9,"Sell, Cook, Gift"],["Summer","Edamame",6,"Sell, Cook, Gift"],
     ["Autumn","Rice",4,"Sell, Cook, Sake"],["Autumn","Sweet Potato",8,"Sell, Cook, Gift"],["Autumn","Pumpkin",9,"Sell, Cook, Gift"],["Autumn","Grapes",8,"Sell, Cook, Gift"],["Autumn","Leeks",6,"Sell, Cook, Gift"],
-    ["Winter","Carrots",5,"Sell, Cook, Gift"],["Winter","Radishes (Daikon)",6,"Sell, Cook, Gift"],["Winter","Cabbage",8,"Sell, Cook, Gift"],["Winter","Negi",6,"Sell, Cook, Gift"],["Winter","Leeks",6,"Sell, Cook, Gift"],
+    ["Winter","Carrots",5,"Sell, Cook, Gift"],["Winter","Radishes (Daikon)",6,"Sell, Cook, Gift"],["Winter","Cabbage",8,"Sell, Cook, Gift"],["Winter","Turnips",6,"Sell, Cook, Gift"],["Winter","Leeks",6,"Sell, Cook, Gift"],
   ].map(([season,name,days,uses],i) => ({ id:"cr-"+i, season, name, days:String(days), uses, value:"", notes:CROP_NOTES[name]||"" })),
   cropQs:[
-    { id:"cq-negi", text:"Leeks vs Negi: similar crops (negi is often translated as \"leek\"), and both grow in winter. Worth giving each its own use or recipe?", done:false },
     { id:"cq-value", text:"Sell price / value per crop (and per merchant) is still TBD.", done:false },
   ],
   tradeIntro:"Traveling merchants bring foraged or premium goods and fruits, and are interested in buying sustainable farmed staples. Each merchant values goods differently, so trade becomes a value system players can learn and exploit for maximum profit.",
@@ -1019,6 +1018,13 @@ function normalizeState(){
     if(S.farm.hunger === "No Stardew-style stamina. Instead the player has a hunger meter, similar to Don't Starve, that runs down over time and is refilled by eating. This ties into cooking.") S.farm.hunger = "No Stardew-style stamina. Instead the player has a hunger meter, similar to Don't Starve, that runs down over time and is refilled by eating. This ties into cooking. Rice is one of the simplest foods to stave off hunger.";
     if(!S.features.some(f=>f.id==="sf8-sake")) S.features.push({ id:"sf8-sake", pillar:"farming", title:"Sake barrels (rice → sake)", desc:"Place a barrel, load rice, wait 4 more days of fermenting, collect sake. Barrels occupy a reasonable amount of farm space, so sake profit costs work and space.", status:"Idea", starter:true });
     S.migrations.v8 = true;
+  }
+  if(!S.migrations.v9){
+    // Winter: Negi replaced by Turnips; the Leeks vs Negi question is gone. Only touches untouched defaults.
+    S.farm.crops.forEach(c => { if(c.season==="Winter" && c.name==="Negi" && c.days==="6") c.name = "Turnips"; });
+    const nq = S.farm.cropQs.findIndex(q => q.id==="cq-negi" && /^Leeks (and|vs) Negi/.test(q.text));
+    if(nq>=0) S.farm.cropQs.splice(nq,1);
+    S.migrations.v9 = true;
   }
   ["checked"].forEach(k => { if(!S[k] || typeof S[k]!=="object") S[k]={}; });
   ["features","tasks","notes"].forEach(k => { if(!Array.isArray(S[k])) S[k]=[]; });
